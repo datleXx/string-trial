@@ -36,7 +36,7 @@ export function SubscriptionForm({
   onSuccess,
 }: SubscriptionFormProps) {
   const router = useRouter();
-  const [formData, setFormData] = useState(
+  const [form_data, setFormData] = useState(
     initialData ?? {
       organizationId: organizations[0]?.id ?? 0,
       feedId: feeds[0]?.id ?? 0,
@@ -67,14 +67,14 @@ export function SubscriptionForm({
     e.preventDefault();
 
     const submitData = {
-      organizationId: formData.organizationId,
-      feedId: formData.feedId,
-      accessUntil: formData.accessUntil.toISOString(),
-      billingAmount: Number(formData.billingAmount),
-      billingFrequency: formData.billingFrequency ?? "monthly",
-      successEmails: formData.successEmails ?? undefined,
-      failEmails: formData.failEmails ?? undefined,
-      schemaUpdateEmails: formData.schemaUpdateEmails ?? undefined,
+      organizationId: form_data.organizationId,
+      feedId: form_data.feedId,
+      accessUntil: form_data.accessUntil.toISOString(),
+      billingAmount: Number(form_data.billingAmount),
+      billingFrequency: form_data.billingFrequency ?? "monthly",
+      successEmails: form_data.successEmails ?? undefined,
+      failEmails: form_data.failEmails ?? undefined,
+      schemaUpdateEmails: form_data.schemaUpdateEmails ?? undefined,
     };
 
     if (initialData?.id) {
@@ -110,7 +110,7 @@ export function SubscriptionForm({
             <div className="space-y-2">
               <Label htmlFor="organization">Organization</Label>
               <Select
-                value={String(formData.organizationId)}
+                value={String(form_data.organizationId)}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -134,7 +134,7 @@ export function SubscriptionForm({
             <div className="space-y-2">
               <Label htmlFor="feed">Feed</Label>
               <Select
-                value={String(formData.feedId)}
+                value={String(form_data.feedId)}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -160,7 +160,7 @@ export function SubscriptionForm({
               <Input
                 type="date"
                 id="accessUntil"
-                value={formData.accessUntil.toISOString().split("T")[0]}
+                value={form_data.accessUntil.toISOString().split("T")[0]}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -180,7 +180,7 @@ export function SubscriptionForm({
                   type="number"
                   id="billingAmount"
                   className="pl-7"
-                  value={formData.billingAmount}
+                  value={form_data.billingAmount}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -197,7 +197,7 @@ export function SubscriptionForm({
               </Label>
               <Input
                 id="successEmails"
-                value={formData.successEmails?.join(", ")}
+                value={form_data.successEmails?.join(", ")}
                 onChange={(e) =>
                   handleEmailArrayChange("successEmails", e.target.value)
                 }
@@ -210,7 +210,7 @@ export function SubscriptionForm({
               </Label>
               <Input
                 id="failEmails"
-                value={formData.failEmails?.join(", ")}
+                value={form_data.failEmails?.join(", ")}
                 onChange={(e) =>
                   handleEmailArrayChange("failEmails", e.target.value)
                 }
@@ -223,7 +223,7 @@ export function SubscriptionForm({
               </Label>
               <Input
                 id="schemaUpdateEmails"
-                value={formData.schemaUpdateEmails?.join(", ")}
+                value={form_data.schemaUpdateEmails?.join(", ")}
                 onChange={(e) =>
                   handleEmailArrayChange("schemaUpdateEmails", e.target.value)
                 }

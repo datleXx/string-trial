@@ -28,7 +28,7 @@ import { NoData } from "~/components/ui/no-data";
 
 export default function AdminUsersPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [search_query, setSearchQuery] = useState("");
 
   const { data: users } = api.admin.getAllUsers.useQuery(undefined, {
     refetchInterval: 30000,
@@ -47,8 +47,8 @@ export default function AdminUsersPage() {
 
   const filteredUsers = users?.filter(
     (user) =>
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ??
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      user.name?.toLowerCase().includes(search_query.toLowerCase()) ??
+      user.email.toLowerCase().includes(search_query.toLowerCase()),
   );
 
   const handleRoleChange = async (
@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
             <div className="w-72">
               <Input
                 placeholder="Search users..."
-                value={searchQuery}
+                value={search_query}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
               />

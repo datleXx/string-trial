@@ -17,11 +17,11 @@ import { TableSkeleton } from "~/components/ui/skeleton";
 
 function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   const now = new Date();
-  const isActive = new Date(accessUntil) > now;
+  const is_active = new Date(accessUntil) > now;
 
   return (
-    <Badge variant={isActive ? "secondary" : "destructive"}>
-      {isActive ? "Active" : "Expired"}
+    <Badge variant={is_active ? "secondary" : "destructive"}>
+      {is_active ? "Active" : "Expired"}
     </Badge>
   );
 }

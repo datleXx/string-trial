@@ -35,25 +35,25 @@ function MetricCard({
 }
 
 async function DashboardMetrics() {
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
+  const start_date = new Date();
+  start_date.setMonth(start_date.getMonth() - 1);
 
   const metrics = await api.billing.getBillingMetrics({
-    startDate: startDate.toISOString(),
-    endDate: new Date().toISOString(),
+    start_date: start_date.toISOString(),
+    end_date: new Date().toISOString(),
   });
 
-  const formattedMRR = new Intl.NumberFormat("en-US", {
+  const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(metrics.totalMRR);
 
-  const formattedARR = new Intl.NumberFormat("en-US", {
+  const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(metrics.totalARR);
 
-  const formattedAVG = new Intl.NumberFormat("en-US", {
+  const formatted_avg = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(metrics.averageSubscriptionValue);
@@ -62,12 +62,12 @@ async function DashboardMetrics() {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         title="Monthly Recurring Revenue"
-        value={formattedMRR}
+        value={formatted_mrr}
         description="Total MRR from all subscriptions"
       />
       <MetricCard
         title="Annual Recurring Revenue"
-        value={formattedARR}
+        value={formatted_arr}
         description="Total ARR from all subscriptions"
       />
       <MetricCard
@@ -77,7 +77,7 @@ async function DashboardMetrics() {
       />
       <MetricCard
         title="Average Subscription Value"
-        value={formattedAVG}
+        value={formatted_avg}
         description="Average value per subscription"
       />
     </div>
@@ -86,9 +86,9 @@ async function DashboardMetrics() {
 
 async function RecentSubscriptions() {
   const subscriptions = await api.subscription.getAll();
-  const recentSubs = subscriptions.slice(0, 5);
+  const recent_subs = subscriptions.slice(0, 5);
 
-  if (recentSubs.length === 0) {
+  if (recent_subs.length === 0) {
     return (
       <NoData
         title="No recent subscriptions"
@@ -113,7 +113,7 @@ async function RecentSubscriptions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentSubs.map((sub) => (
+            {recent_subs.map((sub) => (
               <TableRow key={sub.id}>
                 <TableCell className="font-medium">
                   {sub.organization.name}

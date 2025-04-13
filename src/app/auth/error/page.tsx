@@ -12,10 +12,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 export default function AuthError() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-
-  console.log("error", error);
+  const search_params = useSearchParams();
+  const error = search_params.get("error");
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50">

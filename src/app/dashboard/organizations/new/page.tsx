@@ -23,7 +23,7 @@ interface FormData {
 
 export default function NewOrganizationPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState<FormData>({
+  const [form_data, setFormData] = useState<FormData>({
     name: "",
     billingEmail: "",
     status: "active",
@@ -38,7 +38,7 @@ export default function NewOrganizationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createMutation.mutateAsync(formData);
+    await createMutation.mutateAsync(form_data);
   };
 
   const handleStatusChange = (value: "active" | "inactive") => {
@@ -57,7 +57,7 @@ export default function NewOrganizationPage() {
               <Label htmlFor="name">Organization Name</Label>
               <Input
                 id="name"
-                value={formData.name}
+                value={form_data.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
@@ -70,7 +70,7 @@ export default function NewOrganizationPage() {
               <Input
                 id="billingEmail"
                 type="email"
-                value={formData.billingEmail}
+                value={form_data.billingEmail}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -84,7 +84,7 @@ export default function NewOrganizationPage() {
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData.status}
+                value={form_data.status}
                 onValueChange={handleStatusChange}
               >
                 <SelectTrigger>

@@ -7,20 +7,20 @@ import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
 
 async function BillingMetrics() {
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
+  const start_date = new Date();
+  start_date.setMonth(start_date.getMonth() - 1);
 
   const metrics = await api.billing.getBillingMetrics({
-    startDate: startDate.toISOString(),
-    endDate: new Date().toISOString(),
+    start_date: start_date.toISOString(),
+    end_date: new Date().toISOString(),
   });
 
-  const formattedMRR = new Intl.NumberFormat("en-US", {
+  const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(metrics.totalMRR);
 
-  const formattedARR = new Intl.NumberFormat("en-US", {
+  const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(metrics.totalARR);
@@ -32,7 +32,7 @@ async function BillingMetrics() {
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Monthly Recurring Revenue
           </CardTitle>
-          <p className="mt-2 text-3xl font-semibold">{formattedMRR}</p>
+          <p className="mt-2 text-3xl font-semibold">{formatted_mrr}</p>
         </CardContent>
       </Card>
       <Card>
@@ -40,7 +40,7 @@ async function BillingMetrics() {
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Annual Recurring Revenue
           </CardTitle>
-          <p className="mt-2 text-3xl font-semibold">{formattedARR}</p>
+          <p className="mt-2 text-3xl font-semibold">{formatted_arr}</p>
         </CardContent>
       </Card>
       <Card>
@@ -59,18 +59,18 @@ async function BillingMetrics() {
 
 async function BillingHistorySection() {
   const organizations = await api.organization.getAll();
-  const firstOrg = organizations[0];
+  const first_org = organizations[0];
 
-  if (!firstOrg) {
+  if (!first_org) {
     return <div>No organizations found</div>;
   }
 
-  const billingHistory = await api.billing.getBillingHistory({
-    organizationId: firstOrg.id,
+  const billing_history = await api.billing.getBillingHistory({
+    organization_id: first_org.id,
     limit: 5,
   });
 
-  return <BillingHistoryTable billingHistory={billingHistory} />;
+  return <BillingHistoryTable billing_history={billing_history} />;
 }
 
 async function GenerateInvoiceSection() {

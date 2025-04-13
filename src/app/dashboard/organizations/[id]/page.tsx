@@ -21,10 +21,10 @@ import { Badge } from "~/components/ui/badge";
 import { NoData } from "~/components/ui/no-data";
 
 function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
-  const isActive = accessUntil > new Date();
+  const is_active = accessUntil > new Date();
   return (
-    <Badge variant={isActive ? "default" : "secondary"}>
-      {isActive ? "Active" : "Expired"}
+    <Badge variant={is_active ? "default" : "secondary"}>
+      {is_active ? "Active" : "Expired"}
     </Badge>
   );
 }
@@ -38,15 +38,15 @@ interface OrganizationPageProps {
 export default async function OrganizationPage({
   params,
 }: OrganizationPageProps) {
-  const organizationId = parseInt(params.id);
+  const organization_id = parseInt(params.id);
 
-  if (isNaN(organizationId)) {
+  if (isNaN(organization_id)) {
     notFound();
   }
 
   const [organization, subscriptions] = await Promise.all([
-    api.organization.getById({ id: organizationId }),
-    api.subscription.getByOrganization({ organizationId }),
+    api.organization.getById({ id: organization_id }),
+    api.subscription.getByOrganization({ organization_id }),
   ]);
 
   if (!organization) {
