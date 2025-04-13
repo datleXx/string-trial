@@ -11,8 +11,8 @@ async function BillingMetrics() {
   start_date.setMonth(start_date.getMonth() - 1);
 
   const metrics = await api.billing.getBillingMetrics({
-    start_date: start_date.toISOString(),
-    end_date: new Date().toISOString(),
+    startDate: start_date.toISOString(),
+    endDate: new Date().toISOString(),
   });
 
   const formatted_mrr = new Intl.NumberFormat("en-US", {

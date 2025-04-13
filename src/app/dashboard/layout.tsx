@@ -10,7 +10,7 @@ import {
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
 import { Button } from "~/components/ui/button";
-import { LogOut, Home, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { auth, signOut } from "~/server/auth";
 
