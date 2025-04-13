@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1744557686785,
+      "tag": "0000_green_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1744558033704,
+      "tag": "0001_equal_nicolaos",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744561898198,
+      "tag": "0002_motionless_maria_hill",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1744564995247,
+      "tag": "0003_gorgeous_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1744565245866,
+      "tag": "0004_spotty_vision",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1744566030417,
+      "tag": "0005_salty_felicia_hardy",
+      "breakpoints": true
+    }
+  ]
+}
