@@ -1,5 +1,6 @@
 "use client";
 
+import dayjs from "dayjs";
 import {
   Table,
   TableBody,
@@ -11,65 +12,163 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { NoData } from "~/components/ui/no-data";
+import { type RouterOutputs } from "~/trpc/shared";
+import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
+import toast from "react-hot-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Check, MoreVertical, Trash2 } from "lucide-react";
+
+type BillingHistory = RouterOutputs["billing"]["getBillingHistory"][number];
 
 interface BillingHistoryTableProps {
-  billingHistory: Array<{
-    id: string;
-    date: Date;
-    description: string;
-    amount: string;
-    status: string;
-    billingFrequency: "monthly" | "yearly" | null;
-  }>;
+  billingHistory: BillingHistory[];
 }
+
+const formatCurrency = (amount: number | string) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(Number(amount));
+};
+
+const getStatusColor = (
+  status: string,
+): "default" | "destructive" | "secondary" | "outline" => {
+  switch (status.toLowerCase()) {
+    case "paid":
+      return "default";
+    case "pending":
+      return "secondary";
+    case "cancelled":
+      return "destructive";
+    default:
+      return "outline";
+  }
+};
+
+const formatDate = (date: Date | string | null) => {
+  if (!date) return "-";
+  return dayjs(date).format("MMM D, YYYY");
+};
 
 export function BillingHistoryTable({
   billingHistory,
 }: BillingHistoryTableProps) {
+  const utils = api.useUtils();
+
+  const updateStatusMutation = api.billing.updateInvoiceStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice status updated successfully");
+      void utils.billing.getAllBillingHistory.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update invoice status");
+    },
+  });
+
+  const { mutate: deleteInvoice } = api.billing.deleteInvoice.useMutation({
+    onSuccess: () => {
+      void utils.billing.getAllBillingHistory.invalidate();
+    },
+  });
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    await updateStatusMutation.mutateAsync({
+      invoiceId,
+      status: "paid",
+      paidAt: new Date(),
+    });
+  };
+
+  const handleDelete = (invoiceId: string) => {
+    if (window.confirm("Are you sure you want to delete this invoice?")) {
+      deleteInvoice({ invoiceId });
+    }
+  };
+
   if (billingHistory.length === 0) {
     return (
       <NoData
         title="No billing history"
-        message="There are no items to display at this time."
+        message="There are no invoices to display at this time."
       />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Billing History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {billingHistory.map((bill) => (
-              <TableRow key={bill.id}>
-                <TableCell>
-                  {new Date(bill.date).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{bill.description}</TableCell>
-                <TableCell>${bill.amount}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={bill.status === "paid" ? "default" : "secondary"}
-                  >
-                    {bill.status}
-                  </Badge>
-                </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Invoice #</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Feed</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Paid At</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {billingHistory.map((invoice) => (
+                <TableRow key={invoice.id}>
+                  <TableCell className="font-medium">
+                    {invoice.invoiceNumber}
+                  </TableCell>
+                  <TableCell>{formatDate(invoice.createdAt)}</TableCell>
+                  <TableCell>{formatDate(invoice.dueDate)}</TableCell>
+                  <TableCell>{invoice.organizationToFeed.feed.name}</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(invoice.amount)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusColor(invoice.status)}>
+                      {invoice.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{formatDate(invoice.paidAt)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(invoice.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                          <span className="text-red-600">Delete</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleMarkAsPaid(invoice.id)}
+                          className="text-green-600"
+                        >
+                          <Check className="mr-2 h-4 w-4 text-green-600" />
+                          <span className="text-green-600">Mark as Paid</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
   );
 }

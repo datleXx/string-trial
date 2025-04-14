@@ -110,9 +110,43 @@ export const organizationToFeed = createTable(
   ],
 );
 
+// Invoices table
+export const invoices = createTable(
+  "invoice",
+  () => ({
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    organizationToFeedId: uuid("organization_to_feed_id")
+      .notNull()
+      .references(() => organizationToFeed.id),
+    invoiceNumber: varchar("invoice_number", { length: 255 }).notNull(),
+    amount: decimal("amount").notNull(),
+    status: varchar("status", { length: 50 }).default("pending").notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  }),
+  (t) => [
+    index("invoice_org_idx").on(t.organizationId),
+    index("invoice_org_feed_idx").on(t.organizationToFeedId),
+    index("invoice_number_idx").on(t.invoiceNumber),
+    index("invoice_status_idx").on(t.status),
+  ],
+);
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   feeds: many(organizationToFeed),
+  invoices: many(invoices),
 }));
 
 export const feedsRelations = relations(feeds, ({ many }) => ({
@@ -121,7 +155,7 @@ export const feedsRelations = relations(feeds, ({ many }) => ({
 
 export const organizationToFeedRelations = relations(
   organizationToFeed,
-  ({ one }) => ({
+  ({ one, many }) => ({
     organization: one(organizations, {
       fields: [organizationToFeed.organizationId],
       references: [organizations.id],
@@ -130,6 +164,7 @@ export const organizationToFeedRelations = relations(
       fields: [organizationToFeed.feedId],
       references: [feeds.id],
     }),
+    invoices: many(invoices),
   }),
 );
 
@@ -238,3 +273,14 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invoices.organizationId],
+    references: [organizations.id],
+  }),
+  organizationToFeed: one(organizationToFeed, {
+    fields: [invoices.organizationToFeedId],
+    references: [organizationToFeed.id],
+  }),
+}));

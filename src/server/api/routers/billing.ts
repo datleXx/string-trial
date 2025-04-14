@@ -1,21 +1,24 @@
 import { z } from "zod";
-import { eq, and, sql } from "drizzle-orm";
-import { generateInvoicePDF } from "~/server/services/pdf";
-import { sendInvoiceEmail } from "~/server/services/email";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { organizationToFeed, organizations } from "~/server/db/schema";
+import {
+  organizationToFeed,
+  organizations,
+  invoices,
+} from "~/server/db/schema";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
   organizationId: z.string(),
   subscriptionIds: z.array(z.string()).optional(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  amount: z.number().positive(),
+  dueDate: z.string().datetime(),
 });
 
-const billingPeriodSchema = z.object({
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+const updateInvoiceStatusSchema = z.object({
+  invoiceId: z.string(),
+  status: z.enum(["pending", "paid", "cancelled"]),
+  paidAt: z.date().optional(),
 });
 
 export const billingRouter = createTRPCRouter({
@@ -43,56 +46,51 @@ export const billingRouter = createTRPCRouter({
       });
 
       // Calculate billing amounts
-      const lineItems = subscriptions.map((sub) => ({
+      const line_items = subscriptions.map((sub) => ({
         feedName: sub.feed.name,
         amount: sub.billingAmount,
         period: sub.billingFrequency ?? "one-time",
       }));
 
-      const totalAmount = lineItems.reduce(
+      const total_amount = line_items.reduce(
         (sum, item) => sum + Number(item.amount),
         0,
       );
 
-      // Generate invoice data
-      const invoiceData = {
-        invoiceNumber: `INV-${Date.now()}`,
-        organization: {
-          id: organization.id,
-          name: organization.name,
-          billingEmail: organization.billingEmail,
-        },
-        billingPeriod: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-        },
-        lineItems,
-        totalAmount,
-        generatedAt: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-      };
+      const due_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      const invoice_number = `INV-${Date.now()}`;
 
-      try {
-        // Generate PDF
-        const pdf_buffer = await generateInvoicePDF(invoiceData);
+      // Create invoice record in database
+      const [invoice] = await ctx.db
+        .insert(invoices)
+        .values({
+          organizationId: organization.id,
+          organizationToFeedId: subscriptions[0]?.id ?? "", // Handle potential undefined,
+          amount: total_amount.toString(), // Convert to string for decimal type
+          dueDate: due_date,
+          status: "pending",
+          invoiceNumber: invoice_number,
+        })
+        .returning();
 
-        // Send email with PDF
-        await sendInvoiceEmail({
-          to: organization.billingEmail,
-          invoice_number: invoiceData.invoiceNumber,
-          organization_name: organization.name,
-          amount: totalAmount,
-          pdf_buffer: pdf_buffer,
-        });
+      return invoice;
+    }),
 
-        return {
-          ...invoiceData,
-          status: "sent",
-        };
-      } catch (error) {
-        console.error("Failed to generate or send invoice:", error);
-        throw new Error("Failed to process invoice");
-      }
+  // Update invoice status
+  updateInvoiceStatus: protectedProcedure
+    .input(updateInvoiceStatusSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [updatedInvoice] = await ctx.db
+        .update(invoices)
+        .set({
+          status: input.status,
+          paidAt: input.status === "paid" ? (input.paidAt ?? new Date()) : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, input.invoiceId))
+        .returning();
+
+      return updatedInvoice;
     }),
 
   // Get billing summary for an organization
@@ -131,39 +129,49 @@ export const billingRouter = createTRPCRouter({
     }),
 
   // Get billing metrics for all organizations
-  getBillingMetrics: protectedProcedure
-    .input(billingPeriodSchema)
-    .query(async ({ ctx }) => {
-      const subscriptions = await ctx.db.query.organizationToFeed.findMany({
-        with: {
-          organization: true,
-          feed: true,
+  getBillingMetrics: protectedProcedure.query(async ({ ctx }) => {
+    const subscriptions = await ctx.db.query.organizationToFeed.findMany({
+      with: {
+        organization: true,
+        feed: true,
+      },
+    });
+
+    // Calculate metrics
+    const metrics = {
+      totalMRR: subscriptions
+        .filter((sub) => sub.billingFrequency === "monthly")
+        .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+      totalARR: subscriptions
+        .filter((sub) => sub.billingFrequency === "yearly")
+        .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+      organizationCount: new Set(subscriptions.map((sub) => sub.organizationId))
+        .size,
+      subscriptionCount: subscriptions.length,
+      averageSubscriptionValue:
+        subscriptions.length > 0
+          ? subscriptions.reduce(
+              (sum, sub) => sum + Number(sub.billingAmount),
+              0,
+            ) / subscriptions.length
+          : 0,
+    };
+
+    return metrics;
+  }),
+
+  getAllBillingHistory: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.query.invoices.findMany({
+      orderBy: [desc(invoices.createdAt)],
+      with: {
+        organizationToFeed: {
+          with: {
+            feed: true,
+          },
         },
-      });
-
-      // Calculate metrics
-      const metrics = {
-        totalMRR: subscriptions
-          .filter((sub) => sub.billingFrequency === "monthly")
-          .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-        totalARR: subscriptions
-          .filter((sub) => sub.billingFrequency === "yearly")
-          .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-        organizationCount: new Set(
-          subscriptions.map((sub) => sub.organizationId),
-        ).size,
-        subscriptionCount: subscriptions.length,
-        averageSubscriptionValue:
-          subscriptions.length > 0
-            ? subscriptions.reduce(
-                (sum, sub) => sum + Number(sub.billingAmount),
-                0,
-              ) / subscriptions.length
-            : 0,
-      };
-
-      return metrics;
-    }),
+      },
+    });
+  }),
 
   // Get billing history for an organization
   getBillingHistory: protectedProcedure
@@ -174,23 +182,56 @@ export const billingRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      // This is a stub that would normally pull from a billing_history or invoices table
-      // For now, we'll return mock data based on the subscriptions
-      const subscriptions = await ctx.db.query.organizationToFeed.findMany({
-        where: eq(organizationToFeed.organizationId, input.organizationId),
-        with: {
-          feed: true,
-        },
+      return ctx.db.query.invoices.findMany({
+        where: eq(invoices.organizationId, input.organizationId),
         limit: input.limit ?? 10,
+        orderBy: [desc(invoices.createdAt)],
+        with: {
+          organizationToFeed: {
+            with: {
+              feed: true,
+            },
+          },
+        },
       });
+    }),
 
-      return subscriptions.map((sub) => ({
-        id: `BILL-${sub.id}`,
-        date: sub.createdAt,
-        amount: sub.billingAmount,
-        status: "paid",
-        description: `Subscription to ${sub.feed.name}`,
-        billingFrequency: sub.billingFrequency,
-      }));
+  updateInvoice: protectedProcedure
+    .input(
+      z.object({
+        invoiceId: z.string(),
+        amount: z.number(),
+        status: z.enum(["paid", "pending", "overdue"]),
+        date: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [updated_invoice] = await ctx.db
+        .update(invoices)
+        .set({
+          amount: input.amount.toString(), // Convert to string for decimal type
+          status: input.status,
+          dueDate: new Date(input.date),
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, input.invoiceId))
+        .returning();
+
+      return updated_invoice;
+    }),
+
+  deleteInvoice: protectedProcedure
+    .input(
+      z.object({
+        invoiceId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [deleted_invoice] = await ctx.db
+        .delete(invoices)
+        .where(eq(invoices.id, input.invoiceId))
+        .returning();
+
+      return deleted_invoice;
     }),
 });

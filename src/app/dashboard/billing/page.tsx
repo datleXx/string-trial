@@ -1,19 +1,23 @@
-// Server components
-import { Suspense } from "react";
+"use client";
+
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
-import { api } from "~/trpc/server";
+import { api } from "~/trpc/react";
 import { BillingHistoryTable } from "./BillingHistoryTable";
 import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Separator } from "~/components/ui/separator";
 
-async function BillingMetrics() {
-  const start_date = new Date();
-  start_date.setMonth(start_date.getMonth() - 1);
+function BillingMetrics() {
+  const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery();
 
-  const metrics = await api.billing.getBillingMetrics({
-    startDate: start_date.toISOString(),
-    endDate: new Date().toISOString(),
-  });
+  if (!metrics) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <BillingMetricsLoading />;
+  }
 
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -27,29 +31,38 @@ async function BillingMetrics() {
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white shadow-sm transition-all hover:shadow-md">
+        <CardContent className="p-6">
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Monthly Recurring Revenue
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">{formatted_mrr}</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Total revenue this month
+          </p>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white shadow-sm transition-all hover:shadow-md">
+        <CardContent className="p-6">
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Annual Recurring Revenue
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">{formatted_arr}</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Projected yearly revenue
+          </p>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white shadow-sm transition-all hover:shadow-md">
+        <CardContent className="p-6">
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Total Organizations
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">
             {metrics.organizationCount}
+          </p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Active paying customers
           </p>
         </CardContent>
       </Card>
@@ -57,24 +70,28 @@ async function BillingMetrics() {
   );
 }
 
-async function BillingHistorySection() {
-  const organizations = await api.organization.getAll();
-  const first_org = organizations[0];
+function BillingHistorySection() {
+  const { data: billing_history, isLoading } =
+    api.billing.getAllBillingHistory.useQuery();
 
-  if (!first_org) {
-    return <div>No organizations found</div>;
+  if (isLoading || !billing_history) {
+    return <BillingHistoryLoading />;
   }
-
-  const billing_history = await api.billing.getBillingHistory({
-    organizationId: first_org.id,
-    limit: 5,
-  });
 
   return <BillingHistoryTable billingHistory={billing_history} />;
 }
 
-async function GenerateInvoiceSection() {
-  const organizations = await api.organization.getAll();
+function GenerateInvoiceSection() {
+  const { data: organizations, isLoading } = api.organization.getAll.useQuery();
+
+  if (!organizations) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
   return <GenerateInvoiceForm organizations={organizations} />;
 }
 
@@ -92,27 +109,34 @@ function BillingHistoryLoading() {
   return <TableSkeleton />;
 }
 
-export default async function BillingPage() {
+export default function BillingPage() {
   return (
     <div className="container mx-auto space-y-8 py-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Billing Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Manage billing, generate invoices, and view financial metrics.
         </p>
       </div>
 
-      <Suspense fallback={<BillingMetricsLoading />}>
-        <BillingMetrics />
-      </Suspense>
+      <Separator className="my-6" />
 
-      <Suspense fallback={<BillingHistoryLoading />}>
-        <BillingHistorySection />
-      </Suspense>
+      <BillingMetrics />
 
-      <Suspense fallback={<TableSkeleton />}>
-        <GenerateInvoiceSection />
-      </Suspense>
+      <Tabs defaultValue="history" className="mt-8">
+        <TabsList className="mb-4">
+          <TabsTrigger value="history">Billing History</TabsTrigger>
+          <TabsTrigger value="invoice">Invoice Management</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="history">
+          <BillingHistorySection />
+        </TabsContent>
+
+        <TabsContent value="invoice">
+          <GenerateInvoiceSection />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
