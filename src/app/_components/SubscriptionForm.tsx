@@ -38,8 +38,8 @@ export function SubscriptionForm({
   const router = useRouter();
   const [form_data, setFormData] = useState(
     initialData ?? {
-      organizationId: organizations[0]?.id ?? 0,
-      feedId: feeds[0]?.id ?? 0,
+      organizationId: organizations[0]?.id ?? "",
+      feedId: feeds[0]?.id ?? "",
       accessUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       billingAmount: "0",
       billingFrequency: "monthly" as const,
@@ -114,7 +114,7 @@ export function SubscriptionForm({
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    organizationId: Number(value),
+                    organizationId: value,
                   }))
                 }
               >
@@ -138,7 +138,7 @@ export function SubscriptionForm({
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    feedId: Number(value),
+                    feedId: value,
                   }))
                 }
               >
