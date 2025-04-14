@@ -40,7 +40,7 @@ async function SubscriptionsList() {
 
   return (
     <Card className="mt-8">
-      <CardContent className="p-0">
+      <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

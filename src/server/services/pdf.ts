@@ -24,7 +24,12 @@ interface InvoiceData {
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ margin: 50 });
+      // Create PDF document with default Helvetica font
+      const doc = new PDFDocument({
+        margin: 50,
+        size: "A4",
+      });
+
       const chunks: Buffer[] = [];
 
       doc.on("data", (chunk: Buffer) => chunks.push(chunk));

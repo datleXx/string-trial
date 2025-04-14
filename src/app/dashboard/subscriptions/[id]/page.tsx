@@ -37,7 +37,7 @@ export default async function EditSubscriptionPage({
         </p>
       </div>
 
-      <div className="rounded-lg bg-white p-6 shadow-sm">
+      <div>
         <SubscriptionForm
           initialData={{
             ...subscription,

@@ -15,6 +15,15 @@ const config = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Add font files to the bundle
+    config.module.rules.push({
+      test: /\.(afm)$/,
+      type: 'asset/resource'
+    });
+    
+    return config;
+  }
 };
 
 export default config;

@@ -23,7 +23,7 @@ function MetricCard({
 }) {
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent>
         <CardTitle className="text-muted-foreground text-sm font-medium">
           {title}
         </CardTitle>

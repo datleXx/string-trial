@@ -16,11 +16,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Check for admin routes
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    // If user is not an admin, redirect to dashboard
+  // Check for protected admin routes
+  const pathname = request.nextUrl.pathname;
+  const protectedRoutes = ["/dashboard/billing", "/dashboard/admin/users"];
+
+  if (protectedRoutes.includes(pathname)) {
     if (token.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
@@ -28,5 +30,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/billing", "/dashboard/admin/users"],
 };

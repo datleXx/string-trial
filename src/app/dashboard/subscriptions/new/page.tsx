@@ -19,7 +19,7 @@ export default async function NewSubscriptionPage() {
         </p>
       </div>
 
-      <div className="rounded-lg bg-white p-6 shadow-sm">
+      <div>
         <SubscriptionForm organizations={organizations} feeds={feeds} />
       </div>
     </div>
