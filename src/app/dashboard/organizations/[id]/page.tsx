@@ -29,15 +29,12 @@ function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   );
 }
 
-interface OrganizationPageProps {
-  params: {
-    id: string;
-  };
-}
-
 export default async function OrganizationPage({
   params,
-}: OrganizationPageProps) {
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const organization_id = params.id;
 
   if (!organization_id) {
