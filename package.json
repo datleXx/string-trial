@@ -6,9 +6,9 @@
   "scripts": {
     "build": "next build && npm run db:migrate",
     "check": "next lint && tsc --noEmit",
-    "db:generate": "drizzle-kit generate:pg",
+    "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:push": "drizzle-kit push:pg",
+    "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:mock": "tsx scripts/generate-mock-data.ts && PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB -f scripts/mock-data.dump",
     "dev": "next dev --turbo",

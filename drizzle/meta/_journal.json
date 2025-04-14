@@ -24,20 +24,6 @@
       "breakpoints": true
     },
     {
-      "idx": 3,
-      "version": "7",
-      "when": 1744564995247,
-      "tag": "0003_gorgeous_trish_tilby",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1744565245866,
-      "tag": "0004_spotty_vision",
-      "breakpoints": true
-    },
-    {
       "idx": 5,
       "version": "7",
       "when": 1744566030417,
@@ -49,6 +35,13 @@
       "version": "7",
       "when": 1744598448234,
       "tag": "0006_gray_unicorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1744641976616,
+      "tag": "0007_flat_vargas",
       "breakpoints": true
     }
   ]
