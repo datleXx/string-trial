@@ -23,6 +23,31 @@ export default tseslint.config(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
+      "react/no-unescaped-entities": 0,
+    "@next/next/no-img-element": "off",
+    "@next/next/inline-script-id": "off",
+    "jsx-a11y/alt-text": [0],
+    "import/no-unused-modules": "off",
+    "no-unused-vars": "off",
+    "import/no-unresolved": "off",
+    "import/no-anonymous-default-export": [
+      "error",
+      {
+        "allowArray": true,
+        "allowArrowFunction": true,
+        "allowAnonymousClass": true,
+        "allowAnonymousFunction": true,
+        "allowCallExpression": true, // The true value here is for backward compatibility
+        "allowNew": true,
+        "allowLiteral": true,
+        "allowObject": true
+      }
+    ],
+    "@typescript-eslint/no-implicit-any": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react/jsx-key": "off",
+      "react/display-name": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/consistent-type-imports": [

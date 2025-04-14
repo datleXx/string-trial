@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { desc, eq, and, sql } from "drizzle-orm";
-
+import { eq, and, sql } from "drizzle-orm";
+import { generateInvoicePDF } from "~/server/services/pdf";
+import { sendInvoiceEmail } from "~/server/services/email";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
+import { organizationToFeed, organizations } from "~/server/db/schema";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -45,7 +46,7 @@ export const billingRouter = createTRPCRouter({
       const lineItems = subscriptions.map((sub) => ({
         feedName: sub.feed.name,
         amount: sub.billingAmount,
-        period: sub.billingFrequency,
+        period: sub.billingFrequency ?? "one-time",
       }));
 
       const totalAmount = lineItems.reduce(
@@ -53,8 +54,8 @@ export const billingRouter = createTRPCRouter({
         0,
       );
 
-      // Generate invoice JSON
-      return {
+      // Generate invoice data
+      const invoiceData = {
         invoiceNumber: `INV-${Date.now()}`,
         organization: {
           id: organization.id,
@@ -70,6 +71,28 @@ export const billingRouter = createTRPCRouter({
         generatedAt: new Date().toISOString(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
       };
+
+      try {
+        // Generate PDF
+        const pdf_buffer = await generateInvoicePDF(invoiceData);
+
+        // Send email with PDF
+        await sendInvoiceEmail({
+          to: organization.billingEmail,
+          invoice_number: invoiceData.invoiceNumber,
+          organization_name: organization.name,
+          amount: totalAmount,
+          pdf_buffer: pdf_buffer,
+        });
+
+        return {
+          ...invoiceData,
+          status: "sent",
+        };
+      } catch (error) {
+        console.error("Failed to generate or send invoice:", error);
+        throw new Error("Failed to process invoice");
+      }
     }),
 
   // Get billing summary for an organization

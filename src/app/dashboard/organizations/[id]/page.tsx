@@ -38,15 +38,15 @@ interface OrganizationPageProps {
 export default async function OrganizationPage({
   params,
 }: OrganizationPageProps) {
-  const organization_id = parseInt(params.id);
+  const organization_id = params.id;
 
-  if (isNaN(organization_id)) {
+  if (!organization_id) {
     notFound();
   }
 
   const [organization, subscriptions] = await Promise.all([
     api.organization.getById({ id: organization_id }),
-    api.subscription.getByOrganization({ organization_id }),
+    api.subscription.getByOrganization({ organizationId: organization_id }),
   ]);
 
   if (!organization) {
