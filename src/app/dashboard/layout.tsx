@@ -1,5 +1,6 @@
-import { type ReactNode } from "react";
-import { redirect } from "next/navigation";
+"use client";
+import { type ReactNode, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
@@ -12,14 +13,21 @@ import {
   Mail,
   BarChart2,
 } from "lucide-react";
-import { auth, signOut } from "~/server/auth";
+import { useSession, signOut } from "next-auth/react";
 
-async function DashboardLayout({ children }: { children: ReactNode }) {
-  const session = await auth();
+function DashboardLayout({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const isAdmin = session?.user?.role === "admin";
 
-  if (!session) {
-    redirect("/auth/signin");
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
+
+  if (status === "unauthenticated") {
+    return null;
   }
 
   return (
@@ -82,7 +90,7 @@ async function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="border-t p-3">
           <div className="flex items-center gap-3 px-3">
             <div className="bg-muted relative h-8 w-8 overflow-hidden rounded-full">
-              {session.user.image ? (
+              {session?.user?.image ? (
                 <Image
                   src={session.user.image}
                   alt={session.user.name ?? "User avatar"}
@@ -97,28 +105,21 @@ async function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-medium">
-                {session.user.name}
+                {session?.user?.name}
               </p>
               <p className="text-muted-foreground truncate text-xs">
-                {session.user.email}
+                {session?.user?.email}
               </p>
             </div>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
+          <Button
+            variant="ghost"
+            className="mt-2 w-full justify-start gap-2 rounded-lg px-3 py-2 text-sm"
+            onClick={() => void signOut()}
           >
-            <Button
-              variant="ghost"
-              className="mt-2 w-full justify-start gap-2 rounded-lg px-3 py-2 text-sm"
-              type="submit"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </form>
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
       </aside>
 
