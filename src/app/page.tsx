@@ -10,13 +10,9 @@ export default async function Home() {
   // Redirect unauthenticated users to sign in
   if (!session?.user) {
     redirect("/api/auth/signin");
-  }
-
-  // Redirect admin users to dashboard
-  if (session.user.role === "admin") {
+  } else {
     redirect("/dashboard");
   }
-
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
       {/* Background pattern */}

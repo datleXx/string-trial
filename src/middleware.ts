@@ -18,9 +18,11 @@ export async function middleware(request: NextRequest) {
 
   // Check for protected admin routes
   const pathname = request.nextUrl.pathname;
-  const protectedRoutes = ["/dashboard/billing", "/dashboard/admin/users"];
 
-  if (protectedRoutes.includes(pathname)) {
+  if (
+    pathname === "/dashboard/billing" ||
+    pathname === "/dashboard/admin/users"
+  ) {
     if (token.role !== "admin") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }

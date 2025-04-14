@@ -6,13 +6,11 @@ import { Button } from "~/components/ui/button";
 import {
   LogOut,
   User,
-  Search,
   Bell,
   CheckSquare,
   FileText,
   Mail,
   BarChart2,
-  Settings,
 } from "lucide-react";
 import { auth, signOut } from "~/server/auth";
 
@@ -52,26 +50,30 @@ async function DashboardLayout({ children }: { children: ReactNode }) {
               <CheckSquare className="h-4 w-4" />
               Subscriptions
             </Link>
-            <Link
-              href="/dashboard/billing"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              <FileText className="h-4 w-4" />
-              Billing
-            </Link>
+            {isAdmin && (
+              <>
+                <Link
+                  href="/dashboard/billing"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <FileText className="h-4 w-4" />
+                  Billing
+                </Link>
+                <Link
+                  href="/dashboard/admin/users"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <BarChart2 className="h-4 w-4" />
+                  Admin
+                </Link>
+              </>
+            )}
             <Link
               href="/dashboard/organizations"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <Mail className="h-4 w-4" />
               Organizations
-            </Link>
-            <Link
-              href="/dashboard/admin/users"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              <BarChart2 className="h-4 w-4" />
-              Admin
             </Link>
           </nav>
         </div>
