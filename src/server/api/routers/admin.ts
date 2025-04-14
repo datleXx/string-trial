@@ -4,7 +4,6 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { users } from "~/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-// Create an admin-only middleware
 const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.session?.user?.role !== "admin") {
     throw new TRPCError({

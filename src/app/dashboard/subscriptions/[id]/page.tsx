@@ -39,7 +39,7 @@ export default async function EditSubscriptionPage({
 
       <div>
         <SubscriptionForm
-          initialData={{
+          initial_data={{
             ...subscription,
             dashboardUrl: subscription.dashboardUrl ?? null,
             deliveryMethod: subscription.deliveryMethod ?? null,

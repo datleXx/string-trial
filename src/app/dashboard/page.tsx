@@ -85,7 +85,6 @@ function DashboardMetrics() {
     currency: "USD",
   }).format(metrics.averageSubscriptionValue);
 
-  // Prepare data for visualizations
   const subscriptionsByFrequency = subscriptions.reduce(
     (acc, sub) => {
       const freq = sub.billingFrequency ?? "monthly";
@@ -102,7 +101,6 @@ function DashboardMetrics() {
     }),
   );
 
-  // Simulate some historical data for the area chart
   const revenueData = Array.from({ length: 12 }, (_, i) => ({
     month: new Date(2024, i).toLocaleString("default", { month: "short" }),
     mrr: metrics.totalMRR * (0.85 + Math.random() * 0.3),

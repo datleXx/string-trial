@@ -18,7 +18,7 @@ import { useSession, signOut } from "next-auth/react";
 function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isAdmin = session?.user?.role === "admin";
+  const is_admin = session?.user?.role === "admin";
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,7 +58,7 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               <CheckSquare className="h-4 w-4" />
               Subscriptions
             </Link>
-            {isAdmin && (
+            {is_admin && (
               <>
                 <Link
                   href="/dashboard/billing"

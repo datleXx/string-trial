@@ -23,21 +23,21 @@ type Organization =
 type Feed = RouterOutputs["subscription"]["getAll"][number]["feed"];
 
 interface SubscriptionFormProps {
-  initialData?: RouterOutputs["subscription"]["getAll"][number];
+  initial_data?: RouterOutputs["subscription"]["getAll"][number];
   organizations: Organization[];
   feeds: Feed[];
   onSuccess?: () => void;
 }
 
 export function SubscriptionForm({
-  initialData,
+  initial_data,
   organizations,
   feeds,
   onSuccess,
 }: SubscriptionFormProps) {
   const router = useRouter();
   const [form_data, setFormData] = useState(
-    initialData ?? {
+    initial_data ?? {
       organizationId: organizations[0]?.id ?? "",
       feedId: feeds[0]?.id ?? "",
       accessUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -66,7 +66,7 @@ export function SubscriptionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const submitData = {
+    const submit_data = {
       organizationId: form_data.organizationId,
       feedId: form_data.feedId,
       accessUntil: form_data.accessUntil.toISOString(),
@@ -77,13 +77,13 @@ export function SubscriptionForm({
       schemaUpdateEmails: form_data.schemaUpdateEmails ?? undefined,
     };
 
-    if (initialData?.id) {
+    if (initial_data?.id) {
       await updateMutation.mutateAsync({
-        id: initialData.id,
-        ...submitData,
+        id: initial_data.id,
+        ...submit_data,
       });
     } else {
-      await createMutation.mutateAsync(submitData);
+      await createMutation.mutateAsync(submit_data);
     }
   };
 
@@ -101,7 +101,7 @@ export function SubscriptionForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {initialData?.id ? "Update Subscription" : "Create New Subscription"}
+          {initial_data?.id ? "Update Subscription" : "Create New Subscription"}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -247,7 +247,7 @@ export function SubscriptionForm({
             >
               {(createMutation.isPending ?? updateMutation.isPending)
                 ? "Saving..."
-                : initialData?.id
+                : initial_data?.id
                   ? "Update Subscription"
                   : "Create Subscription"}
             </Button>

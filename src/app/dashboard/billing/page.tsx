@@ -78,7 +78,7 @@ function BillingHistorySection() {
     return <BillingHistoryLoading />;
   }
 
-  return <BillingHistoryTable billingHistory={billing_history} />;
+  return <BillingHistoryTable billing_history={billing_history} />;
 }
 
 function GenerateInvoiceSection() {

@@ -27,7 +27,7 @@ import { Check, MoreVertical, Trash2 } from "lucide-react";
 type BillingHistory = RouterOutputs["billing"]["getBillingHistory"][number];
 
 interface BillingHistoryTableProps {
-  billingHistory: BillingHistory[];
+  billing_history: BillingHistory[];
 }
 
 const formatCurrency = (amount: number | string) => {
@@ -58,7 +58,7 @@ const formatDate = (date: Date | string | null) => {
 };
 
 export function BillingHistoryTable({
-  billingHistory,
+  billing_history,
 }: BillingHistoryTableProps) {
   const utils = api.useUtils();
 
@@ -92,7 +92,7 @@ export function BillingHistoryTable({
     }
   };
 
-  if (billingHistory.length === 0) {
+  if (billing_history.length === 0) {
     return (
       <NoData
         title="No billing history"
@@ -121,7 +121,7 @@ export function BillingHistoryTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {billingHistory.map((invoice) => (
+              {billing_history.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">
                     {invoice.invoiceNumber}

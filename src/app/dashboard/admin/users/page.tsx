@@ -45,7 +45,7 @@ export default function AdminUsersPage() {
     },
   });
 
-  const filteredUsers = users?.filter(
+  const filtered_users = users?.filter(
     (user) =>
       user.name?.toLowerCase().includes(search_query.toLowerCase()) ??
       user.email.toLowerCase().includes(search_query.toLowerCase()),
@@ -89,7 +89,7 @@ export default function AdminUsersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {!filteredUsers?.length ? (
+          {!filtered_users?.length ? (
             <NoData
               title="No users found"
               message="No users match your search criteria."
@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {filtered_users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
