@@ -63,7 +63,7 @@ next-env.d.ts
 *.sqlite3
 /scripts/mock-data.sql
 /scripts/mock-data.dump
-/drizzle/
+
 
 # logs
 logs
