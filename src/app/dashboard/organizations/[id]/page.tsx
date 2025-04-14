@@ -32,10 +32,9 @@ function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
 export default async function OrganizationPage({
   params,
 }: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
 }) {
-  const organization_id = params.id;
+  const organization_id = (await params).id;
 
   if (!organization_id) {
     notFound();

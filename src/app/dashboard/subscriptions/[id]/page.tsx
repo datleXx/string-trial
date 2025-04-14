@@ -3,17 +3,15 @@ import { api } from "~/trpc/server";
 import { SubscriptionForm } from "~/app/_components/SubscriptionForm";
 
 interface EditSubscriptionPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditSubscriptionPage({
   params,
 }: EditSubscriptionPageProps) {
-  const subscriptionId = parseInt(params.id);
+  const subscriptionId = (await params).id;
 
-  if (isNaN(subscriptionId)) {
+  if (!subscriptionId) {
     notFound();
   }
 
