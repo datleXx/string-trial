@@ -38,10 +38,7 @@ async function DashboardMetrics() {
   const start_date = new Date();
   start_date.setMonth(start_date.getMonth() - 1);
 
-  const metrics = await api.billing.getBillingMetrics({
-    startDate: start_date.toISOString(),
-    endDate: new Date().toISOString(),
-  });
+  const metrics = await api.billing.getBillingMetrics();
 
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
