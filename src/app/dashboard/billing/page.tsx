@@ -66,11 +66,11 @@ async function BillingHistorySection() {
   }
 
   const billing_history = await api.billing.getBillingHistory({
-    organization_id: first_org.id,
+    organizationId: first_org.id,
     limit: 5,
   });
 
-  return <BillingHistoryTable billing_history={billing_history} />;
+  return <BillingHistoryTable billingHistory={billing_history} />;
 }
 
 async function GenerateInvoiceSection() {

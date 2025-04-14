@@ -12,6 +12,7 @@ import {
   timestamp,
   unique,
   varchar,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -38,7 +39,9 @@ export const billingFrequencyEnum = pgEnum("billing_frequency", [
 export const organizations = createTable(
   "organization",
   (d) => ({
-    id: serial("id").primaryKey().notNull(),
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 255 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -54,7 +57,9 @@ export const organizations = createTable(
 
 // Feeds table
 export const feeds = createTable("feed", (d) => ({
-  id: serial("id").primaryKey().notNull(),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -70,7 +75,9 @@ export const feeds = createTable("feed", (d) => ({
 export const organizationToFeed = createTable(
   "organization_to_feed",
   (d) => ({
-    id: serial("id").primaryKey().notNull(),
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -78,10 +85,10 @@ export const organizationToFeed = createTable(
       () => new Date(),
     ),
 
-    feedId: integer("feed_id")
+    feedId: uuid("feed_id")
       .notNull()
       .references(() => feeds.id),
-    organizationId: integer("organization_id")
+    organizationId: uuid("organization_id")
       .notNull()
       .references(() => organizations.id),
 

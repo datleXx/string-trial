@@ -7,7 +7,7 @@ import { organizations } from "~/server/db/schema";
 const createOrganizationSchema = z.object({
   name: z.string().min(1),
   billingEmail: z.string().email(),
-  status: z.string().optional(),
+  status: z.enum(["active", "inactive"]).default("active"),
 });
 
 export const organizationRouter = createTRPCRouter({
@@ -18,7 +18,7 @@ export const organizationRouter = createTRPCRouter({
   }),
 
   getById: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.organizations.findFirst({
         where: eq(organizations.id, input.id),
@@ -28,15 +28,29 @@ export const organizationRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.insert(organizations).values({
-        name: input.name,
-        billingEmail: input.billingEmail,
-        status: input.status ?? "active",
-      });
+      try {
+        const result = await ctx.db
+          .insert(organizations)
+          .values({
+            name: input.name,
+            billingEmail: input.billingEmail,
+            status: input.status,
+          })
+          .returning();
+
+        if (!result[0]) {
+          throw new Error("Failed to create organization");
+        }
+
+        return result[0];
+      } catch (error) {
+        console.error("Error creating organization:", error);
+        throw error;
+      }
     }),
 
   update: protectedProcedure
-    .input(createOrganizationSchema.extend({ id: z.number() }))
+    .input(createOrganizationSchema.extend({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
       return await ctx.db
@@ -46,7 +60,7 @@ export const organizationRouter = createTRPCRouter({
     }),
 
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db
         .delete(organizations)

@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
 
 // Input validation schemas
-const subscriptionIdSchema = z.object({ id: z.number() });
+const subscriptionIdSchema = z.object({ id: z.string() });
 
 const createSubscriptionSchema = z.object({
-  organizationId: z.number(),
-  feedId: z.number(),
+  organizationId: z.string(),
+  feedId: z.string(),
   accessUntil: z.string().datetime(),
   dashboardUrl: z.string().url().optional(),
   deliveryMethod: z.enum(["api", "sftp", "email"]).optional(),
@@ -22,7 +22,7 @@ const createSubscriptionSchema = z.object({
 });
 
 const updateSubscriptionSchema = createSubscriptionSchema.partial().extend({
-  id: z.number(),
+  id: z.string(),
 });
 
 export const subscriptionRouter = createTRPCRouter({
@@ -77,7 +77,7 @@ export const subscriptionRouter = createTRPCRouter({
         successEmails: input.successEmails,
         failEmails: input.failEmails,
         schemaUpdateEmails: input.schemaUpdateEmails,
-        billingAmount: input.billingAmount,
+        billingAmount: input.billingAmount.toString(),
         billingFrequency: input.billingFrequency,
       });
     }),
@@ -88,10 +88,14 @@ export const subscriptionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
 
-      // Convert accessUntil to Date if provided
-      const processedData = updateData.accessUntil
-        ? { ...updateData, accessUntil: new Date(updateData.accessUntil) }
-        : updateData;
+      // Convert types for database
+      const processedData = {
+        ...updateData,
+        accessUntil: updateData.accessUntil
+          ? new Date(updateData.accessUntil)
+          : undefined,
+        billingAmount: updateData.billingAmount?.toString(),
+      };
 
       return await ctx.db
         .update(organizationToFeed)
@@ -110,7 +114,7 @@ export const subscriptionRouter = createTRPCRouter({
 
   // Get subscriptions by organization
   getByOrganization: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.organizationToFeed.findMany({
         where: eq(organizationToFeed.organizationId, input.organizationId),

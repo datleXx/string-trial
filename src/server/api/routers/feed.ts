@@ -18,7 +18,7 @@ export const feedRouter = createTRPCRouter({
   }),
 
   getById: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.feeds.findFirst({
         where: eq(feeds.id, input.id),
@@ -36,7 +36,7 @@ export const feedRouter = createTRPCRouter({
     }),
 
   update: protectedProcedure
-    .input(createFeedSchema.extend({ id: z.number() }))
+    .input(createFeedSchema.extend({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       return await ctx.db
@@ -49,7 +49,7 @@ export const feedRouter = createTRPCRouter({
     }),
 
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.delete(feeds).where(eq(feeds.id, input.id));
     }),

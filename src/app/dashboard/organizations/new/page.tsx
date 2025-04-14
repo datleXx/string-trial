@@ -38,7 +38,15 @@ export default function NewOrganizationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createMutation.mutateAsync(form_data);
+    try {
+      await createMutation.mutateAsync({
+        name: form_data.name,
+        billingEmail: form_data.billingEmail,
+        status: form_data.status,
+      });
+    } catch (error) {
+      console.error("Failed to create organization:", error);
+    }
   };
 
   const handleStatusChange = (value: "active" | "inactive") => {

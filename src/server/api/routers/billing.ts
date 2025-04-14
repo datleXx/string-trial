@@ -6,8 +6,8 @@ import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
-  organizationId: z.number(),
-  subscriptionIds: z.array(z.number()).optional(),
+  organizationId: z.string(),
+  subscriptionIds: z.array(z.string()).optional(),
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
 });
@@ -74,7 +74,7 @@ export const billingRouter = createTRPCRouter({
 
   // Get billing summary for an organization
   getBillingSummary: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
         const subscriptions = await ctx.db.query.organizationToFeed.findMany({
@@ -146,7 +146,7 @@ export const billingRouter = createTRPCRouter({
   getBillingHistory: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.string(),
         limit: z.number().optional(),
       }),
     )
