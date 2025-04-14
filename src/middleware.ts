@@ -9,6 +9,12 @@ export async function middleware(request: NextRequest) {
     secret: env.AUTH_SECRET,
   });
 
+  console.log("Middleware Debug:", {
+    hasToken: !!token,
+    tokenRole: token?.role,
+    pathname: request.nextUrl.pathname,
+  });
+
   // Check if user is authenticated
   if (!token) {
     const url = new URL("/api/auth/signin", request.url);
