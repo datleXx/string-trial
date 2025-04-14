@@ -133,7 +133,7 @@ export const billingRouter = createTRPCRouter({
   // Get billing metrics for all organizations
   getBillingMetrics: protectedProcedure
     .input(billingPeriodSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx }) => {
       const subscriptions = await ctx.db.query.organizationToFeed.findMany({
         with: {
           organization: true,
