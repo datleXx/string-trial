@@ -18,8 +18,8 @@ async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth();
   const isAdmin = session?.user?.role === "admin";
 
-  if (!isAdmin) {
-    redirect("/dashboard");
+  if (!session) {
+    redirect("/auth/signin");
   }
 
   return (
