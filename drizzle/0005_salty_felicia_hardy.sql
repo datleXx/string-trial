@@ -1,2 +1,0 @@
-ALTER TABLE "user" ADD COLUMN "lastLogin" timestamp with time zone DEFAULT CURRENT_TIMESTAMP;--> statement-breakpoint
-ALTER TABLE "user" ADD COLUMN "createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL;

@@ -1,3 +1,5 @@
+CREATE TYPE "public"."billing_frequency" AS ENUM('monthly', 'yearly');--> statement-breakpoint
+CREATE TYPE "public"."delivery_method" AS ENUM('api', 'sftp', 'email');--> statement-breakpoint
 CREATE TABLE "account" (
 	"userId" varchar(255) NOT NULL,
 	"type" varchar(255) NOT NULL,
@@ -14,7 +16,7 @@ CREATE TABLE "account" (
 );
 --> statement-breakpoint
 CREATE TABLE "feed" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"description" text,
 	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -23,11 +25,11 @@ CREATE TABLE "feed" (
 );
 --> statement-breakpoint
 CREATE TABLE "organization_to_feed" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"updated_at" timestamp with time zone,
-	"feed_id" integer NOT NULL,
-	"organization_id" integer NOT NULL,
+	"feed_id" uuid NOT NULL,
+	"organization_id" uuid NOT NULL,
 	"access_until" timestamp with time zone NOT NULL,
 	"dashboard_url" varchar(255),
 	"delivery_method" "delivery_method",
@@ -41,7 +43,7 @@ CREATE TABLE "organization_to_feed" (
 );
 --> statement-breakpoint
 CREATE TABLE "organization" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"updated_at" timestamp with time zone,
@@ -69,7 +71,9 @@ CREATE TABLE "user" (
 	"email" varchar(255) NOT NULL,
 	"emailVerified" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
 	"image" varchar(255),
-	"role" varchar(50) DEFAULT 'user' NOT NULL
+	"role" varchar(50) DEFAULT 'user' NOT NULL,
+	"lastLogin" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+	"createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "verification_token" (
@@ -79,14 +83,6 @@ CREATE TABLE "verification_token" (
 	CONSTRAINT "verification_token_identifier_token_pk" PRIMARY KEY("identifier","token")
 );
 --> statement-breakpoint
-DROP TABLE "string-trial_account" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_feed" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_organization_to_feed" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_organization" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_post" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_session" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_user" CASCADE;--> statement-breakpoint
-DROP TABLE "string-trial_verification_token" CASCADE;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organization_to_feed" ADD CONSTRAINT "organization_to_feed_feed_id_feed_id_fk" FOREIGN KEY ("feed_id") REFERENCES "public"."feed"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organization_to_feed" ADD CONSTRAINT "organization_to_feed_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

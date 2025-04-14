@@ -3,11 +3,9 @@ import {
   decimal,
   pgEnum,
   index,
-  integer,
   jsonb,
   pgTableCreator,
   primaryKey,
-  serial,
   text,
   timestamp,
   unique,
@@ -38,7 +36,7 @@ export const billingFrequencyEnum = pgEnum("billing_frequency", [
 // Organizations table
 export const organizations = createTable(
   "organization",
-  (d) => ({
+  () => ({
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
@@ -56,7 +54,7 @@ export const organizations = createTable(
 );
 
 // Feeds table
-export const feeds = createTable("feed", (d) => ({
+export const feeds = createTable("feed", () => ({
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
@@ -74,7 +72,7 @@ export const feeds = createTable("feed", (d) => ({
 // Organization to Feed relationship table
 export const organizationToFeed = createTable(
   "organization_to_feed",
-  (d) => ({
+  () => ({
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),

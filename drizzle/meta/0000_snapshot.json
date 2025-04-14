@@ -1,11 +1,11 @@
 {
-  "id": "a06ce929-dd7c-400f-b250-fe26c55022a3",
+  "id": "eb13e40c-8a7a-482e-8f0f-64d6ff056cfd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.string-trial_account": {
-      "name": "string-trial_account",
+    "public.account": {
+      "name": "account",
       "schema": "",
       "columns": {
         "userId": {
@@ -93,10 +93,10 @@
         }
       },
       "foreignKeys": {
-        "string-trial_account_userId_string-trial_user_id_fk": {
-          "name": "string-trial_account_userId_string-trial_user_id_fk",
-          "tableFrom": "string-trial_account",
-          "tableTo": "string-trial_user",
+        "account_userId_user_id_fk": {
+          "name": "account_userId_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -108,8 +108,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "string-trial_account_provider_providerAccountId_pk": {
-          "name": "string-trial_account_provider_providerAccountId_pk",
+        "account_provider_providerAccountId_pk": {
+          "name": "account_provider_providerAccountId_pk",
           "columns": [
             "provider",
             "providerAccountId"
@@ -121,15 +121,16 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_feed": {
-      "name": "string-trial_feed",
+    "public.feed": {
+      "name": "feed",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -171,15 +172,16 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_organization_to_feed": {
-      "name": "string-trial_organization_to_feed",
+    "public.organization_to_feed": {
+      "name": "organization_to_feed",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "created_at": {
           "name": "created_at",
@@ -196,13 +198,13 @@
         },
         "feed_id": {
           "name": "feed_id",
-          "type": "integer",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "organization_id": {
           "name": "organization_id",
-          "type": "integer",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -296,10 +298,10 @@
         }
       },
       "foreignKeys": {
-        "string-trial_organization_to_feed_feed_id_string-trial_feed_id_fk": {
-          "name": "string-trial_organization_to_feed_feed_id_string-trial_feed_id_fk",
-          "tableFrom": "string-trial_organization_to_feed",
-          "tableTo": "string-trial_feed",
+        "organization_to_feed_feed_id_feed_id_fk": {
+          "name": "organization_to_feed_feed_id_feed_id_fk",
+          "tableFrom": "organization_to_feed",
+          "tableTo": "feed",
           "columnsFrom": [
             "feed_id"
           ],
@@ -309,10 +311,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "string-trial_organization_to_feed_organization_id_string-trial_organization_id_fk": {
-          "name": "string-trial_organization_to_feed_organization_id_string-trial_organization_id_fk",
-          "tableFrom": "string-trial_organization_to_feed",
-          "tableTo": "string-trial_organization",
+        "organization_to_feed_organization_id_organization_id_fk": {
+          "name": "organization_to_feed_organization_id_organization_id_fk",
+          "tableFrom": "organization_to_feed",
+          "tableTo": "organization",
           "columnsFrom": [
             "organization_id"
           ],
@@ -325,8 +327,8 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "string-trial_organization_to_feed_feed_id_organization_id_unique": {
-          "name": "string-trial_organization_to_feed_feed_id_organization_id_unique",
+        "organization_to_feed_feed_id_organization_id_unique": {
+          "name": "organization_to_feed_feed_id_organization_id_unique",
           "nullsNotDistinct": false,
           "columns": [
             "feed_id",
@@ -338,15 +340,16 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_organization": {
-      "name": "string-trial_organization",
+    "public.organization": {
+      "name": "organization",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -405,8 +408,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_post": {
-      "name": "string-trial_post",
+    "public.post": {
+      "name": "post",
       "schema": "",
       "columns": {
         "id": {
@@ -416,7 +419,7 @@
           "notNull": true,
           "identity": {
             "type": "byDefault",
-            "name": "string-trial_post_id_seq",
+            "name": "post_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -485,10 +488,10 @@
         }
       },
       "foreignKeys": {
-        "string-trial_post_createdById_string-trial_user_id_fk": {
-          "name": "string-trial_post_createdById_string-trial_user_id_fk",
-          "tableFrom": "string-trial_post",
-          "tableTo": "string-trial_user",
+        "post_createdById_user_id_fk": {
+          "name": "post_createdById_user_id_fk",
+          "tableFrom": "post",
+          "tableTo": "user",
           "columnsFrom": [
             "createdById"
           ],
@@ -505,8 +508,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_session": {
-      "name": "string-trial_session",
+    "public.session": {
+      "name": "session",
       "schema": "",
       "columns": {
         "sessionToken": {
@@ -546,10 +549,10 @@
         }
       },
       "foreignKeys": {
-        "string-trial_session_userId_string-trial_user_id_fk": {
-          "name": "string-trial_session_userId_string-trial_user_id_fk",
-          "tableFrom": "string-trial_session",
-          "tableTo": "string-trial_user",
+        "session_userId_user_id_fk": {
+          "name": "session_userId_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -566,8 +569,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_user": {
-      "name": "string-trial_user",
+    "public.user": {
+      "name": "user",
       "schema": "",
       "columns": {
         "id": {
@@ -600,6 +603,27 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
+        },
+        "lastLogin": {
+          "name": "lastLogin",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {},
@@ -610,8 +634,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.string-trial_verification_token": {
-      "name": "string-trial_verification_token",
+    "public.verification_token": {
+      "name": "verification_token",
       "schema": "",
       "columns": {
         "identifier": {
@@ -636,8 +660,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "string-trial_verification_token_identifier_token_pk": {
-          "name": "string-trial_verification_token_identifier_token_pk",
+        "verification_token_identifier_token_pk": {
+          "name": "verification_token_identifier_token_pk",
           "columns": [
             "identifier",
             "token"
