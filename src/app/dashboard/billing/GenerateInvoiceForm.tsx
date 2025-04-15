@@ -122,7 +122,7 @@ export function GenerateInvoiceForm({
                 Organization
               </Label>
               <Select value={selected_org} onValueChange={setSelectedOrg}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-fit font-light">
                   <SelectValue
                     placeholder={selected_org_name ?? "Select organization"}
                   />
@@ -163,7 +163,10 @@ export function GenerateInvoiceForm({
                           }
                         }}
                       />
-                      <Label htmlFor={sub.id} className="text-sm">
+                      <Label
+                        htmlFor={sub.id}
+                        className="text-sm font-light"
+                      >
                         {sub.feed.name} - ${sub.billingAmount}/
                         {sub.billingFrequency}
                       </Label>
@@ -182,7 +185,7 @@ export function GenerateInvoiceForm({
                 id="amount"
                 step="0.01"
                 min="0"
-                className="w-full"
+                className="w-3/4 font-light"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
@@ -197,7 +200,7 @@ export function GenerateInvoiceForm({
               <Input
                 type="date"
                 id="dueDate"
-                className="w-full"
+                className="w-fit font-light"
                 value={due_date}
                 onChange={(e) => setDueDate(e.target.value)}
                 min={dayjs().format("YYYY-MM-DD")}
@@ -210,7 +213,7 @@ export function GenerateInvoiceForm({
             <Button
               type="submit"
               disabled={generateInvoiceMutation.isPending}
-              className="w-full bg-blue-500 hover:bg-blue-600 md:w-auto"
+              className="w-full md:w-auto"
             >
               {generateInvoiceMutation.isPending
                 ? "Generating..."

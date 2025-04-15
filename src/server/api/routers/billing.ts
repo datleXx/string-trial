@@ -137,8 +137,6 @@ export const billingRouter = createTRPCRouter({
       }
     }),
 
-
-
   getAllBillingHistory: protectedProcedure.query(async () => {
     return db.query.invoices.findMany({
       orderBy: [desc(invoices.createdAt)],

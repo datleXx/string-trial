@@ -39,7 +39,7 @@ async function SubscriptionsList() {
   }
 
   return (
-    <Card className="mt-8">
+    <Card>
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
@@ -61,17 +61,17 @@ async function SubscriptionsList() {
                   <TableCell className="font-medium">
                     <div>
                       {sub.organization.name}
-                      <div className="text-muted-foreground text-sm md:hidden">
+                      <div className="text-muted-foreground text-sm font-light md:hidden">
                         {sub.feed.name}
                       </div>
-                      <div className="text-muted-foreground text-sm sm:hidden">
+                      <div className="text-muted-foreground text-sm font-light sm:hidden">
                         <SubscriptionStatus
                           accessUntil={new Date(sub.accessUntil)}
                         />
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden font-light md:table-cell">
                     {sub.feed.name}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
@@ -79,18 +79,15 @@ async function SubscriptionsList() {
                       accessUntil={new Date(sub.accessUntil)}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     ${sub.billingAmount}/{sub.billingFrequency}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden font-light lg:table-cell">
                     {new Date(sub.accessUntil).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/subscriptions/${sub.id}`}>
-                        <span className="hidden sm:inline">Edit</span>
-                        <span className="sm:hidden">Edit</span>
-                      </Link>
+                    <Button variant="outline" size="sm" asChild>
+                      <span className="text-xs">Edit</span>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -105,13 +102,13 @@ async function SubscriptionsList() {
 
 export default async function SubscriptionsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Subscriptions
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 font-light">
             Manage and monitor active subscriptions across organizations.
           </p>
         </div>

@@ -6,7 +6,6 @@ import { BillingHistoryTable } from "./BillingHistoryTable";
 import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { Separator } from "~/components/ui/separator";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function BillingMetrics() {
@@ -40,7 +39,7 @@ function BillingMetrics() {
             Monthly Recurring Revenue
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">{formatted_mrr}</p>
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm font-light">
             Total revenue this month
           </p>
         </CardContent>
@@ -51,7 +50,7 @@ function BillingMetrics() {
             Annual Recurring Revenue
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">{formatted_arr}</p>
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm font-light">
             Projected yearly revenue
           </p>
         </CardContent>
@@ -64,7 +63,7 @@ function BillingMetrics() {
           <p className="mt-2 text-3xl font-semibold">
             {metrics.current.organization_count}
           </p>
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm font-light">
             Active paying customers
           </p>
         </CardContent>
@@ -120,22 +119,26 @@ export default function BillingPage() {
   const view_only = user?.role === "viewer";
 
   return (
-    <div className="container mx-auto space-y-8 py-10">
+    <div className="container mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Billing Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 font-light">
           Manage billing, generate invoices, and view financial metrics.
         </p>
       </div>
 
-      <Separator className="my-6" />
-
       <BillingMetrics />
 
-      <Tabs defaultValue="history" className="mt-8">
-        <TabsList className="mb-4">
-          <TabsTrigger value="history">Billing History</TabsTrigger>
-          <TabsTrigger disabled={view_only} value="invoice">
+      <Tabs defaultValue="history">
+        <TabsList className="mb-5 space-x-2">
+          <TabsTrigger className="hover:cursor-pointer" value="history">
+            Billing History
+          </TabsTrigger>
+          <TabsTrigger
+            disabled={view_only}
+            className="hover:cursor-pointer"
+            value="invoice"
+          >
             Invoice Management
           </TabsTrigger>
         </TabsList>

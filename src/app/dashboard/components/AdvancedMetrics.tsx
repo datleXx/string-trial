@@ -96,10 +96,19 @@ export function AdvancedMetrics() {
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={cohort_data}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip contentStyle={{ fontSize: 12 }} separator=": " />
+                <Legend
+                  iconSize={10}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 12 }}
+                />
                 <Bar
                   yAxisId="left"
                   dataKey="New Users"
@@ -180,12 +189,18 @@ export function AdvancedMetrics() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                />
                 <YAxis
                   yAxisId="left"
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                   axisLine={false}
                   tickLine={false}
+                  tick={{ fontSize: 12 }}
                 />
                 <YAxis
                   yAxisId="right"
@@ -193,17 +208,19 @@ export function AdvancedMetrics() {
                   tickFormatter={(value: number) => String(Math.round(value))}
                   axisLine={false}
                   tickLine={false}
+                  tick={{ fontSize: 12 }}
                 />
                 <Tooltip
+                  contentStyle={{ fontSize: 12 }}
                   formatter={(value: number, name: string) => {
                     if (name === "MRR" || name === "ARR") {
                       return [`$${value.toFixed(2)}`, name];
                     }
                     return [Math.round(value), name];
                   }}
-                  labelFormatter={(label: string) => label}
+                  separator=": "
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Area
                   yAxisId="left"
                   type="monotone"
@@ -265,9 +282,6 @@ export function AdvancedMetrics() {
                     fill="#8884d8"
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
                   >
                     {billing_frequency_data.map((_, index) => (
                       <Cell
@@ -276,8 +290,23 @@ export function AdvancedMetrics() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12 }}
+                    formatter={(value: number, name: string) => {
+                      if (name === "Monthly" || name === "Yearly") {
+                        return [`${value}`, name];
+                      }
+                      return [Math.round(value), name];
+                    }}
+                    separator=": "
+                  />
+                  <Legend
+                    iconSize={10}
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12 }}
+                    align="center"
+                    verticalAlign="bottom"
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -302,9 +331,6 @@ export function AdvancedMetrics() {
                     fill="#8884d8"
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, value }) =>
-                      `${name} ($${Number(value).toFixed(2)})`
-                    }
                   >
                     {collection_data.map((_, index) => (
                       <Cell
@@ -314,9 +340,22 @@ export function AdvancedMetrics() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                    contentStyle={{ fontSize: 12 }}
+                    formatter={(value: number, name: string) => {
+                      if (name === "Paid" || name === "Pending") {
+                        return [`$${value}`, name];
+                      }
+                      return [Math.round(value), name];
+                    }}
+                    separator=": "
                   />
-                  <Legend />
+                  <Legend
+                    iconSize={10}
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12 }}
+                    align="center"
+                    verticalAlign="bottom"
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>

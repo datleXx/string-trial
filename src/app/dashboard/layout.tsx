@@ -45,14 +45,14 @@ function DashboardLayout({ children }: { children: ReactNode }) {
           <nav className="space-y-1 p-3">
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
             >
               <Bell className="h-4 w-4" />
               Overview
             </Link>
             <Link
               href="/dashboard/subscriptions"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
             >
               <CheckSquare className="h-4 w-4" />
               Subscriptions
@@ -61,14 +61,14 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               <>
                 <Link
                   href="/dashboard/billing"
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
                 >
                   <FileText className="h-4 w-4" />
                   Billing
                 </Link>
                 <Link
                   href="/dashboard/admin/users"
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
                 >
                   <BarChart2 className="h-4 w-4" />
                   Admin
@@ -77,7 +77,7 @@ function DashboardLayout({ children }: { children: ReactNode }) {
             )}
             <Link
               href="/dashboard/organizations"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
             >
               <Mail className="h-4 w-4" />
               Organizations
@@ -104,7 +104,7 @@ function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-medium">{user?.name}</p>
-              <p className="text-muted-foreground truncate text-xs">
+              <p className="text-muted-foreground truncate text-xs font-light">
                 {user?.email}
               </p>
             </div>

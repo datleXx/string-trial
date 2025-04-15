@@ -33,7 +33,9 @@ function MetricCard({
           {title}
         </CardTitle>
         <p className="mt-2 text-3xl font-semibold">{value}</p>
-        <p className="text-muted-foreground mt-2 text-sm">{description}</p>
+        <p className="text-muted-foreground mt-2 text-sm font-light">
+          {description}
+        </p>
         {typeof trend !== "undefined" && trend !== 0 && (
           <p
             className={`mt-2 text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}
@@ -71,7 +73,7 @@ function DashboardMetrics() {
   }).format(metrics.current.average_invoice_value);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Monthly Recurring Revenue"
@@ -139,9 +141,13 @@ function RecentSubscriptions() {
             {recent_subs.map((sub) => (
               <TableRow key={sub.id}>
                 <TableCell>{sub.organization.name}</TableCell>
-                <TableCell>{sub.feed.name}</TableCell>
-                <TableCell>${sub.billingAmount}</TableCell>
-                <TableCell>{sub.billingFrequency}</TableCell>
+                <TableCell className="font-light">{sub.feed.name}</TableCell>
+                <TableCell className="font-light">
+                  ${sub.billingAmount}
+                </TableCell>
+                <TableCell className="font-light">
+                  {sub.billingFrequency}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -164,10 +170,10 @@ function DashboardMetricsLoading() {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 font-light">
           A high-level overview of your subscription metrics and recent
           activity.
         </p>

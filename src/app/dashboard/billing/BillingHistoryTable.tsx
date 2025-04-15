@@ -159,10 +159,16 @@ export function BillingHistoryTable({
                   <TableCell className="font-medium">
                     {invoice.invoiceNumber}
                   </TableCell>
-                  <TableCell>{formatDate(invoice.createdAt)}</TableCell>
-                  <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-                  <TableCell>{invoice.organizationToFeed.feed.name}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="font-light">
+                    {formatDate(invoice.createdAt)}
+                  </TableCell>
+                  <TableCell className="font-light">
+                    {formatDate(invoice.dueDate)}
+                  </TableCell>
+                  <TableCell className="font-light">
+                    {invoice.organizationToFeed.feed.name}
+                  </TableCell>
+                  <TableCell className="text-right font-light">
                     {formatCurrency(invoice.amount)}
                   </TableCell>
                   <TableCell>
@@ -170,37 +176,40 @@ export function BillingHistoryTable({
                       {invoice.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatDate(invoice.paidAt)}</TableCell>
+                  <TableCell className="font-light">
+                    {formatDate(invoice.paidAt)}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleDelete(invoice.id)}
-                          className="text-red-600 hover:text-red-700"
+                          onClick={() => handleMarkAsPaid(invoice.id)}
                           disabled={view_only}
                         >
-                          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                          <span className="text-red-600">Delete</span>
+                          <Check className="mr-1 h-3 w-3 text-green-600" />
+                          <span className="text-xs text-green-600">
+                            Mark as Paid
+                          </span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleMarkAsPaid(invoice.id)}
-                          className="text-green-600"
+                          onClick={() => handleDelete(invoice.id)}
                           disabled={view_only}
                         >
-                          <Check className="mr-2 h-4 w-4 text-green-600" />
-                          <span className="text-green-600">Mark as Paid</span>
+                          <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                          <span className="text-xs text-red-600">Delete</span>
                         </DropdownMenuItem>
+
                         <DropdownMenuItem
                           onClick={() => handleDownloadPDF(invoice.id)}
                           disabled={generatePDFMutation.isPending}
                         >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download PDF
+                          <Download className="mr-1 h-3 w-3" />
+                          <span className="text-xs">Download PDF</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

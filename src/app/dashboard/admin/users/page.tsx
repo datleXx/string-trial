@@ -74,10 +74,10 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 font-light">
           Manage user roles and monitor user activity across the platform.
         </p>
       </div>
@@ -135,15 +135,17 @@ export default function AdminUsersPage() {
                         )}
                         <div>
                           <div className="font-medium">{user.name}</div>
-                          <div className="text-muted-foreground text-sm">
+                          <div className="text-muted-foreground font-light text-sm">
                             Joined{" "}
                             {new Date(user.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-light">
+                      {user.email}
+                    </TableCell>
+                    <TableCell className="font-light">
                       <Select
                         value={user.role}
                         onValueChange={(value: "admin" | "user") =>
@@ -163,7 +165,7 @@ export default function AdminUsersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="font-light">
                       {user.lastLogin
                         ? new Date(user.lastLogin).toLocaleString()
                         : "Never"}
@@ -187,12 +189,14 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
-                        variant="ghost"
+                        variant="outline"
+                        size="sm"
                         onClick={() =>
                           router.push(`/dashboard/admin/users/${user.id}`)
                         }
+                        className="text-xs"
                       >
-                        View Details
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>

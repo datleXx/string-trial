@@ -31,7 +31,6 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
 
   // Define colors and constants
   const primary_color: [number, number, number] = [41, 128, 185];
-  const secondary_color: [number, number, number] = [100, 100, 100];
   const background_gray = 248;
   const page_margin = 20;
   const content_width = doc.internal.pageSize.width - 2 * page_margin;

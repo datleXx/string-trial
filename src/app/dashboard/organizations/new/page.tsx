@@ -66,6 +66,7 @@ export default function NewOrganizationPage() {
               <Input
                 id="name"
                 value={form_data.name}
+                className="font-light"
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
@@ -79,6 +80,7 @@ export default function NewOrganizationPage() {
                 id="billingEmail"
                 type="email"
                 value={form_data.billingEmail}
+                className="font-light"
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -95,7 +97,7 @@ export default function NewOrganizationPage() {
                 value={form_data.status}
                 onValueChange={handleStatusChange}
               >
-                <SelectTrigger>
+                <SelectTrigger className="font-light">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
