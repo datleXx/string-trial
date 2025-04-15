@@ -195,7 +195,7 @@ export function BillingHistoryTable({
                           disabled={view_only}
                         >
                           <Check className="mr-1 h-3 w-3 text-green-600" />
-                          <span className="text-xs text-green-600">
+                          <span className="text-sm text-green-600">
                             Mark as Paid
                           </span>
                         </DropdownMenuItem>
@@ -204,7 +204,7 @@ export function BillingHistoryTable({
                           disabled={view_only}
                         >
                           <Trash2 className="mr-1 h-3 w-3 text-red-600" />
-                          <span className="text-xs text-red-600">Delete</span>
+                          <span className="text-sm text-red-600">Delete</span>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
@@ -212,7 +212,7 @@ export function BillingHistoryTable({
                           disabled={generatePDFMutation.isPending}
                         >
                           <Download className="mr-1 h-3 w-3" />
-                          <span className="text-xs">Download PDF</span>
+                          <span className="text-sm">Download PDF</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
