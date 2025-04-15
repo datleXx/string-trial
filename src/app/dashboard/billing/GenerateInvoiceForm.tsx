@@ -12,7 +12,6 @@ import {
 } from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { type RouterOutputs } from "~/trpc/shared";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
@@ -110,118 +109,109 @@ export function GenerateInvoiceForm({
   )?.name;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Generate Invoice</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="organization" className="text-sm font-medium">
-                Organization
-              </Label>
-              <Select value={selected_org} onValueChange={setSelectedOrg}>
-                <SelectTrigger className="w-fit font-light">
-                  <SelectValue
-                    placeholder={selected_org_name ?? "Select organization"}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="organization" className="text-sm font-medium">
+            Organization
+          </Label>
+          <Select value={selected_org} onValueChange={setSelectedOrg}>
+            <SelectTrigger className="w-full font-light">
+              <SelectValue
+                placeholder={selected_org_name ?? "Select organization"}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selected_org && subscriptions.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Select Subscriptions</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {subscriptions.map((sub) => (
+                <div
+                  key={sub.id}
+                  className="flex items-center space-x-2 rounded-lg border p-3"
+                >
+                  <Checkbox
+                    id={sub.id}
+                    checked={selected_subscriptions.includes(sub.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedSubscriptions([
+                          ...selected_subscriptions,
+                          sub.id,
+                        ]);
+                      } else {
+                        setSelectedSubscriptions(
+                          selected_subscriptions.filter((id) => id !== sub.id),
+                        );
+                      }
+                    }}
                   />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selected_org && subscriptions.length > 0 && (
-              <div className="space-y-4 md:col-span-2">
-                <Label className="text-sm font-medium">
-                  Select Subscriptions
-                </Label>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {subscriptions.map((sub) => (
-                    <div key={sub.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={sub.id}
-                        checked={selected_subscriptions.includes(sub.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedSubscriptions([
-                              ...selected_subscriptions,
-                              sub.id,
-                            ]);
-                          } else {
-                            setSelectedSubscriptions(
-                              selected_subscriptions.filter(
-                                (id) => id !== sub.id,
-                              ),
-                            );
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={sub.id}
-                        className="text-sm font-light"
-                      >
-                        {sub.feed.name} - ${sub.billingAmount}/
-                        {sub.billingFrequency}
-                      </Label>
-                    </div>
-                  ))}
+                  <Label htmlFor={sub.id} className="text-sm font-light">
+                    {sub.feed.name} - ${sub.billingAmount}/
+                    {sub.billingFrequency}
+                  </Label>
                 </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-sm font-medium">
-                Amount ($)
-              </Label>
-              <Input
-                type="number"
-                id="amount"
-                step="0.01"
-                min="0"
-                className="w-3/4 font-light"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-                placeholder="Enter invoice amount"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="dueDate" className="text-sm font-medium">
-                Due Date
-              </Label>
-              <Input
-                type="date"
-                id="dueDate"
-                className="w-fit font-light"
-                value={due_date}
-                onChange={(e) => setDueDate(e.target.value)}
-                min={dayjs().format("YYYY-MM-DD")}
-                required
-              />
+              ))}
             </div>
           </div>
+        )}
 
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={generateInvoiceMutation.isPending}
-              className="w-full md:w-auto"
-            >
-              {generateInvoiceMutation.isPending
-                ? "Generating..."
-                : "Generate Invoice"}
-            </Button>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-sm font-medium">
+              Amount ($)
+            </Label>
+            <Input
+              type="number"
+              id="amount"
+              step="0.01"
+              min="0"
+              className="font-light"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              placeholder="Enter invoice amount"
+            />
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <div className="space-y-2">
+            <Label htmlFor="dueDate" className="text-sm font-medium">
+              Due Date
+            </Label>
+            <Input
+              type="date"
+              id="dueDate"
+              className="font-light"
+              value={due_date}
+              onChange={(e) => setDueDate(e.target.value)}
+              required
+              min={dayjs().format("YYYY-MM-DD")}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={generateInvoiceMutation.isPending}
+          className="w-full sm:w-auto"
+        >
+          {generateInvoiceMutation.isPending
+            ? "Generating..."
+            : "Generate Invoice"}
+        </Button>
+      </div>
+    </form>
   );
 }

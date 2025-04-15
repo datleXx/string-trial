@@ -3,10 +3,7 @@
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 import { api } from "~/trpc/react";
 import { BillingHistoryTable } from "./BillingHistoryTable";
-import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function BillingMetrics() {
   const { data: metrics, isLoading } = api.metrics.getBillingMetrics.useQuery({
@@ -83,20 +80,6 @@ function BillingHistorySection() {
   return <BillingHistoryTable billing_history={billing_history} />;
 }
 
-function GenerateInvoiceSection() {
-  const { data: organizations, isLoading } = api.organization.getAll.useQuery();
-
-  if (!organizations) {
-    return null;
-  }
-
-  if (isLoading) {
-    return <TableSkeleton />;
-  }
-
-  return <GenerateInvoiceForm organizations={organizations} />;
-}
-
 function BillingMetricsLoading() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -112,12 +95,6 @@ function BillingHistoryLoading() {
 }
 
 export default function BillingPage() {
-  const { user } = useRoleGuard({
-    required_roles: ["admin", "viewer"],
-  });
-
-  const view_only = user?.role === "viewer";
-
   return (
     <div className="container mx-auto space-y-6">
       <div>
@@ -129,28 +106,9 @@ export default function BillingPage() {
 
       <BillingMetrics />
 
-      <Tabs defaultValue="history">
-        <TabsList className="mb-5 space-x-2">
-          <TabsTrigger className="hover:cursor-pointer" value="history">
-            Billing History
-          </TabsTrigger>
-          <TabsTrigger
-            disabled={view_only}
-            className="hover:cursor-pointer"
-            value="invoice"
-          >
-            Invoice Management
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="history">
-          <BillingHistorySection />
-        </TabsContent>
-
-        <TabsContent value="invoice">
-          <GenerateInvoiceSection />
-        </TabsContent>
-      </Tabs>
+      <div>
+        <BillingHistorySection />
+      </div>
     </div>
   );
 }

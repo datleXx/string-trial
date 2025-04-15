@@ -54,7 +54,7 @@ export default function NewOrganizationPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto w-1/2 py-10">
       <Card>
         <CardHeader>
           <CardTitle>Create New Organization</CardTitle>

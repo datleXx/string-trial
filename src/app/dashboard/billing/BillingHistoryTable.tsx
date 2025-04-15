@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Check, MoreVertical, Trash2, Download } from "lucide-react";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
+import { InvoiceFormDialog } from "./InvoiceFormDialog";
 
 type BillingHistory = RouterOutputs["billing"]["getBillingHistory"][number];
 
@@ -62,6 +63,7 @@ export function BillingHistoryTable({
   billing_history,
 }: BillingHistoryTableProps) {
   const utils = api.useUtils();
+  const { data: organizations = [] } = api.organization.getAll.useQuery();
 
   const { user } = useRoleGuard({
     required_roles: ["admin", "viewer"],
@@ -137,8 +139,9 @@ export function BillingHistoryTable({
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Billing History</CardTitle>
+          {!view_only && <InvoiceFormDialog organizations={organizations} />}
         </CardHeader>
         <CardContent>
           <Table>
