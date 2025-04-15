@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { type RouterOutputs } from "~/trpc/shared";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -16,7 +15,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";
-import { Separator } from "~/components/ui/separator";
 import toast from "react-hot-toast";
 
 type Organization =
@@ -142,7 +140,7 @@ export function SubscriptionForm({
   const content = (
     <form onSubmit={handleSubmit} className="mt-2 space-y-6 p-2">
       {existing_subscription && !initial_data?.id && (
-        <div className="rounded-lg border border-red-500 bg-red-50 p-4 text-sm text-red-600">
+        <div className="-mt-2 rounded-lg border border-red-500 bg-red-50 p-2 text-sm text-red-600">
           This organization already has an active subscription to this feed
           (expires{" "}
           {new Date(existing_subscription.accessUntil).toLocaleDateString()}).
