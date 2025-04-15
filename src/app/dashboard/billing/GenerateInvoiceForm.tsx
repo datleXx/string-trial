@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { type RouterOutputs } from "~/trpc/shared";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
+import { Checkbox } from "~/components/ui/checkbox";
 
 type Organization = RouterOutputs["organization"]["getAll"][number];
 
@@ -27,12 +28,32 @@ export function GenerateInvoiceForm({
   organizations,
 }: GenerateInvoiceFormProps) {
   const [selected_org, setSelectedOrg] = useState<string>("");
+  const [selected_subscriptions, setSelectedSubscriptions] = useState<string[]>(
+    [],
+  );
   const [amount, setAmount] = useState<string>("");
   const [due_date, setDueDate] = useState<string>(
     dayjs().add(30, "day").format("YYYY-MM-DD"),
   );
 
   const utils = api.useUtils();
+
+  // Fetch subscriptions for selected organization
+  const { data: subscriptions = [] } =
+    api.subscription.getByOrganization.useQuery(
+      { organizationId: selected_org },
+      { enabled: !!selected_org },
+    );
+
+  // Calculate total amount when subscriptions are selected
+  useEffect(() => {
+    if (selected_subscriptions.length > 0) {
+      const total = subscriptions
+        .filter((sub) => selected_subscriptions.includes(sub.id))
+        .reduce((sum, sub) => sum + Number(sub.billingAmount), 0);
+      setAmount(total.toString());
+    }
+  }, [selected_subscriptions, subscriptions]);
 
   const generateInvoiceMutation = api.billing.generateInvoice.useMutation({
     onSuccess: (invoice) => {
@@ -41,6 +62,7 @@ export function GenerateInvoiceForm({
       );
       // Reset form
       setSelectedOrg("");
+      setSelectedSubscriptions([]);
       setAmount("");
       setDueDate(dayjs().add(30, "day").format("YYYY-MM-DD"));
       // Refresh billing history
@@ -58,6 +80,11 @@ export function GenerateInvoiceForm({
       return;
     }
 
+    if (selected_subscriptions.length === 0) {
+      toast.error("Please select at least one subscription");
+      return;
+    }
+
     if (dayjs(due_date).isBefore(dayjs())) {
       toast.error("Due date must be in the future");
       return;
@@ -71,6 +98,8 @@ export function GenerateInvoiceForm({
 
     await generateInvoiceMutation.mutateAsync({
       organizationId: selected_org,
+      subscriptionIds:
+        selected_subscriptions.length > 0 ? selected_subscriptions : undefined,
       amount: numericAmount,
       dueDate: dayjs(due_date).toISOString(),
     });
@@ -108,6 +137,42 @@ export function GenerateInvoiceForm({
               </Select>
             </div>
 
+            {selected_org && subscriptions.length > 0 && (
+              <div className="space-y-4 md:col-span-2">
+                <Label className="text-sm font-medium">
+                  Select Subscriptions
+                </Label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {subscriptions.map((sub) => (
+                    <div key={sub.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={sub.id}
+                        checked={selected_subscriptions.includes(sub.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedSubscriptions([
+                              ...selected_subscriptions,
+                              sub.id,
+                            ]);
+                          } else {
+                            setSelectedSubscriptions(
+                              selected_subscriptions.filter(
+                                (id) => id !== sub.id,
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                      <Label htmlFor={sub.id} className="text-sm">
+                        {sub.feed.name} - ${sub.billingAmount}/
+                        {sub.billingFrequency}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-sm font-medium">
                 Amount ($)
@@ -124,21 +189,21 @@ export function GenerateInvoiceForm({
                 placeholder="Enter invoice amount"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dueDate" className="text-sm font-medium">
-              Due Date
-            </Label>
-            <Input
-              type="date"
-              id="dueDate"
-              className="w-full max-w-md"
-              value={due_date}
-              onChange={(e) => setDueDate(e.target.value)}
-              min={dayjs().format("YYYY-MM-DD")}
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="dueDate" className="text-sm font-medium">
+                Due Date
+              </Label>
+              <Input
+                type="date"
+                id="dueDate"
+                className="w-full"
+                value={due_date}
+                onChange={(e) => setDueDate(e.target.value)}
+                min={dayjs().format("YYYY-MM-DD")}
+                required
+              />
+            </div>
           </div>
 
           <div className="pt-4">

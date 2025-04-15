@@ -33,7 +33,8 @@ export const billingRouter = createTRPCRouter({
         where: eq(organizations.id, input.organizationId),
       });
 
-      if (!organization) throw new Error("Organization not found");
+      if (!organization || input.subscriptionIds?.length === 0)
+        throw new Error("Invalid input");
 
       // Get subscriptions for the organization
       const subscriptions = await db.query.organizationToFeed.findMany({

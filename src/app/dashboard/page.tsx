@@ -73,19 +73,22 @@ function DashboardMetrics() {
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.totalMRR);
+    minimumFractionDigits: 2,
+  }).format(Number(metrics.total_mrr));
 
   const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.totalARR);
+    minimumFractionDigits: 2,
+  }).format(Number(metrics.total_arr));
 
   const formatted_avg = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.averageSubscriptionValue);
+    minimumFractionDigits: 2,
+  }).format(Number(metrics.average_subscription_value));
 
-  const subscriptionsByFrequency = subscriptions.reduce(
+  const subscriptions_by_frequency = subscriptions.reduce(
     (acc, sub) => {
       const freq = sub.billingFrequency ?? "monthly";
       acc[freq] = (acc[freq] ?? 0) + Number(sub.billingAmount);
@@ -94,17 +97,17 @@ function DashboardMetrics() {
     {} as Record<string, number>,
   );
 
-  const pieData = Object.entries(subscriptionsByFrequency).map(
+  const pie_data = Object.entries(subscriptions_by_frequency).map(
     ([name, value]) => ({
       name,
       value,
     }),
   );
 
-  const revenueData = Array.from({ length: 12 }, (_, i) => ({
+  const revenue_data = Array.from({ length: 12 }, (_, i) => ({
     month: new Date(2024, i).toLocaleString("default", { month: "short" }),
-    mrr: metrics.totalMRR * (0.85 + Math.random() * 0.3),
-    arr: metrics.totalARR * (0.85 + Math.random() * 0.3),
+    mrr: (Number(metrics.total_mrr) * (0.85 + Math.random() * 0.3)).toFixed(2),
+    arr: (Number(metrics.total_arr) * (0.85 + Math.random() * 0.3)).toFixed(2),
   }));
 
   return (
@@ -124,7 +127,7 @@ function DashboardMetrics() {
         />
         <MetricCard
           title="Total Organizations"
-          value={metrics.organizationCount}
+          value={metrics.organization_count}
           description="Number of active organizations"
           trend={3.1}
         />
@@ -144,7 +147,7 @@ function DashboardMetrics() {
         <CardContent>
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
+              <AreaChart data={revenue_data}>
                 <defs>
                   <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0088FE" stopOpacity={0.8} />
@@ -193,7 +196,7 @@ function DashboardMetrics() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={pieData}
+                    data={pie_data}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -203,7 +206,7 @@ function DashboardMetrics() {
                     dataKey="value"
                     label
                   >
-                    {pieData.map((_, index) => (
+                    {pie_data.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -226,13 +229,13 @@ function DashboardMetrics() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={pieData}>
+                <BarChart data={pie_data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="value" fill="#8884d8">
-                    {pieData.map((_, index) => (
+                    {pie_data.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
