@@ -7,11 +7,12 @@ import {
 } from "~/server/api/trpc";
 import { users } from "~/server/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { db } from "~/server/db";
 
 export const adminRouter = createTRPCRouter({
   // Get all users
-  getAllUsers: protectedProcedure.query(async ({ ctx }) => {
-    const allUsers = await ctx.db.query.users.findMany({
+  getAllUsers: protectedProcedure.query(async () => {
+    const allUsers = await db.query.users.findMany({
       orderBy: [desc(users.id)],
     });
 
@@ -26,9 +27,9 @@ export const adminRouter = createTRPCRouter({
         role: z.enum(["admin", "user", "viewer"]),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       // Check if user exists
-      const user = await ctx.db.query.users.findFirst({
+      const user = await db.query.users.findFirst({
         where: eq(users.id, input.userId),
       });
 
@@ -40,7 +41,7 @@ export const adminRouter = createTRPCRouter({
       }
 
       // Update user role
-      await ctx.db
+      await db
         .update(users)
         .set({ role: input.role })
         .where(eq(users.id, input.userId));
@@ -51,8 +52,8 @@ export const adminRouter = createTRPCRouter({
   // Get user details
   getUserDetails: protectedProcedure
     .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const user = await ctx.db.query.users.findFirst({
+    .query(async ({ input }) => {
+      const user = await db.query.users.findFirst({
         where: eq(users.id, input.userId),
       });
 

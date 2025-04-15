@@ -1,4 +1,3 @@
-import { postRouter } from "~/server/api/routers/post";
 import { subscriptionRouter } from "~/server/api/routers/subscription";
 import { billingRouter } from "~/server/api/routers/billing";
 import { organizationRouter } from "~/server/api/routers/organization";
@@ -11,7 +10,6 @@ import { adminRouter } from "~/server/api/routers/admin";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
   subscription: subscriptionRouter,
   billing: billingRouter,
   organization: organizationRouter,

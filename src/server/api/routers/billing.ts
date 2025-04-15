@@ -8,6 +8,7 @@ import {
 } from "~/server/db/schema";
 import dayjs from "dayjs";
 import { elevatedProcedure, adminProcedure } from "~/server/api/trpc";
+import { db } from "~/server/db";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -27,15 +28,15 @@ export const billingRouter = createTRPCRouter({
   // Generate invoice for an organization
   generateInvoice: adminProcedure
     .input(generateInvoiceSchema)
-    .mutation(async ({ ctx, input }) => {
-      const organization = await ctx.db.query.organizations.findFirst({
+    .mutation(async ({ input }) => {
+      const organization = await db.query.organizations.findFirst({
         where: eq(organizations.id, input.organizationId),
       });
 
       if (!organization) throw new Error("Organization not found");
 
       // Get subscriptions for the organization
-      const subscriptions = await ctx.db.query.organizationToFeed.findMany({
+      const subscriptions = await db.query.organizationToFeed.findMany({
         where: and(
           eq(organizationToFeed.organizationId, input.organizationId),
           input.subscriptionIds
@@ -63,7 +64,7 @@ export const billingRouter = createTRPCRouter({
       const invoice_number = `INV-${Date.now()}`;
 
       // Create invoice record in database
-      const [invoice] = await ctx.db
+      const [invoice] = await db
         .insert(invoices)
         .values({
           organizationId: organization.id,
@@ -81,8 +82,8 @@ export const billingRouter = createTRPCRouter({
   // Update invoice status
   updateInvoiceStatus: adminProcedure
     .input(updateInvoiceStatusSchema)
-    .mutation(async ({ ctx, input }) => {
-      const [updatedInvoice] = await ctx.db
+    .mutation(async ({ input }) => {
+      const [updatedInvoice] = await db
         .update(invoices)
         .set({
           status: input.status,
@@ -98,9 +99,9 @@ export const billingRouter = createTRPCRouter({
   // Get billing summary for an organization
   getBillingSummary: elevatedProcedure
     .input(z.object({ organizationId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       try {
-        const subscriptions = await ctx.db.query.organizationToFeed.findMany({
+        const subscriptions = await db.query.organizationToFeed.findMany({
           where: eq(organizationToFeed.organizationId, input.organizationId),
           with: {
             feed: true,
@@ -131,8 +132,8 @@ export const billingRouter = createTRPCRouter({
     }),
 
   // Get billing metrics for all organizations
-  getBillingMetrics: protectedProcedure.query(async ({ ctx }) => {
-    const subscriptions = await ctx.db.query.organizationToFeed.findMany({
+  getBillingMetrics: protectedProcedure.query(async () => {
+    const subscriptions = await db.query.organizationToFeed.findMany({
       with: {
         organization: true,
         feed: true,
@@ -163,8 +164,8 @@ export const billingRouter = createTRPCRouter({
     return metrics;
   }),
 
-  getAllBillingHistory: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.query.invoices.findMany({
+  getAllBillingHistory: protectedProcedure.query(async () => {
+    return db.query.invoices.findMany({
       orderBy: [desc(invoices.createdAt)],
       with: {
         organizationToFeed: {
@@ -184,8 +185,8 @@ export const billingRouter = createTRPCRouter({
         limit: z.number().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      return ctx.db.query.invoices.findMany({
+    .query(async ({ input }) => {
+      return db.query.invoices.findMany({
         where: eq(invoices.organizationId, input.organizationId),
         limit: input.limit ?? 10,
         orderBy: [desc(invoices.createdAt)],
@@ -208,8 +209,8 @@ export const billingRouter = createTRPCRouter({
         date: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const [updated_invoice] = await ctx.db
+    .mutation(async ({ input }) => {
+      const [updated_invoice] = await db
         .update(invoices)
         .set({
           amount: input.amount.toString(), // Convert to string for decimal type
@@ -229,8 +230,8 @@ export const billingRouter = createTRPCRouter({
         invoiceId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const [deleted_invoice] = await ctx.db
+    .mutation(async ({ input }) => {
+      const [deleted_invoice] = await db
         .delete(invoices)
         .where(eq(invoices.id, input.invoiceId))
         .returning();

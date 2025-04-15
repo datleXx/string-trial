@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { feeds } from "~/server/db/schema";
+import { db } from "~/server/db";
 
 const createFeedSchema = z.object({
   name: z.string().min(1),
@@ -11,24 +12,24 @@ const createFeedSchema = z.object({
 });
 
 export const feedRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.query.feeds.findMany({
+  getAll: protectedProcedure.query(async () => {
+    return await db.query.feeds.findMany({
       orderBy: [desc(feeds.name)],
     });
   }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return await ctx.db.query.feeds.findFirst({
+    .query(async ({ input }) => {
+      return await db.query.feeds.findFirst({
         where: eq(feeds.id, input.id),
       });
     }),
 
   create: protectedProcedure
     .input(createFeedSchema)
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db.insert(feeds).values({
+    .mutation(async ({ input }) => {
+      return await db.insert(feeds).values({
         name: input.name,
         description: input.description,
         basePrice: input.basePrice.toString(),
@@ -37,9 +38,9 @@ export const feedRouter = createTRPCRouter({
 
   update: protectedProcedure
     .input(createFeedSchema.extend({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return await ctx.db
+      return await db
         .update(feeds)
         .set({
           ...data,
@@ -50,7 +51,7 @@ export const feedRouter = createTRPCRouter({
 
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db.delete(feeds).where(eq(feeds.id, input.id));
+    .mutation(async ({ input }) => {
+      return await db.delete(feeds).where(eq(feeds.id, input.id));
     }),
 });

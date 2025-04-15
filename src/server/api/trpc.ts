@@ -13,6 +13,8 @@ import { ZodError } from "zod";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * 1. CONTEXT
@@ -29,9 +31,18 @@ import { db } from "~/server/db";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth();
 
+  const user = session?.user?.id
+    ? await db.query.users.findFirst({
+        where: eq(users.id, session?.user?.id),
+      })
+    : null;
+
   return {
-    db,
-    session,
+    session: {
+      ...session,
+      user: user,
+    },
+    user,
     ...opts,
   };
 };
@@ -121,19 +132,19 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
+    if (!ctx.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({
       ctx: {
         // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        session: { ...ctx.session, user: ctx.user },
       },
     });
   });
 
 export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (ctx.session?.user?.role !== "admin") {
+  if (ctx.user?.role !== "admin") {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be an admin to access this resource",
@@ -144,10 +155,7 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 
 export const elevatedProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    if (
-      ctx.session?.user?.role !== "admin" &&
-      ctx.session?.user?.role !== "viewer"
-    ) {
+    if (ctx.user?.role !== "admin" && ctx.user?.role !== "viewer") {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "You must be an admin or viewer to access this resource",

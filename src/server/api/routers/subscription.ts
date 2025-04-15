@@ -3,6 +3,7 @@ import { desc, eq, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
+import { db } from "~/server/db";
 
 const subscriptionIdSchema = z.object({ id: z.string() });
 
@@ -26,8 +27,8 @@ const updateSubscriptionSchema = createSubscriptionSchema.partial().extend({
 
 export const subscriptionRouter = createTRPCRouter({
   // Get all subscriptions with organization and feed details
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.query.organizationToFeed.findMany({
+  getAll: protectedProcedure.query(async () => {
+    return await db.query.organizationToFeed.findMany({
       with: {
         organization: true,
         feed: true,
@@ -39,8 +40,8 @@ export const subscriptionRouter = createTRPCRouter({
   // Get a single subscription by ID
   getById: protectedProcedure
     .input(subscriptionIdSchema)
-    .query(async ({ ctx, input }) => {
-      return await ctx.db.query.organizationToFeed.findFirst({
+    .query(async ({ input }) => {
+      return await db.query.organizationToFeed.findFirst({
         where: eq(organizationToFeed.id, input.id),
         with: {
           organization: true,
@@ -52,12 +53,12 @@ export const subscriptionRouter = createTRPCRouter({
   // Create a new subscription
   create: protectedProcedure
     .input(createSubscriptionSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const [org, feed] = await Promise.all([
-        ctx.db.query.organizations.findFirst({
+        db.query.organizations.findFirst({
           where: eq(organizations.id, input.organizationId),
         }),
-        ctx.db.query.feeds.findFirst({
+        db.query.feeds.findFirst({
           where: eq(feeds.id, input.feedId),
         }),
       ]);
@@ -65,7 +66,7 @@ export const subscriptionRouter = createTRPCRouter({
       if (!org) throw new Error("Organization not found");
       if (!feed) throw new Error("Feed not found");
 
-      return await ctx.db.insert(organizationToFeed).values({
+      return await db.insert(organizationToFeed).values({
         organizationId: input.organizationId,
         feedId: input.feedId,
         accessUntil: new Date(input.accessUntil),
@@ -83,7 +84,7 @@ export const subscriptionRouter = createTRPCRouter({
   // Update a subscription
   update: protectedProcedure
     .input(updateSubscriptionSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...updateData } = input;
 
       const processedData = {
@@ -94,7 +95,7 @@ export const subscriptionRouter = createTRPCRouter({
         billingAmount: updateData.billingAmount?.toString(),
       };
 
-      return await ctx.db
+      return await db
         .update(organizationToFeed)
         .set(processedData)
         .where(eq(organizationToFeed.id, id));
@@ -103,8 +104,8 @@ export const subscriptionRouter = createTRPCRouter({
   // Delete a subscription
   delete: protectedProcedure
     .input(subscriptionIdSchema)
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db
+    .mutation(async ({ input }) => {
+      return await db
         .delete(organizationToFeed)
         .where(eq(organizationToFeed.id, input.id));
     }),
@@ -112,8 +113,8 @@ export const subscriptionRouter = createTRPCRouter({
   // Get subscriptions by organization
   getByOrganization: protectedProcedure
     .input(z.object({ organizationId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return await ctx.db.query.organizationToFeed.findMany({
+    .query(async ({ input }) => {
+      return await db.query.organizationToFeed.findMany({
         where: eq(organizationToFeed.organizationId, input.organizationId),
         with: {
           feed: true,
@@ -123,8 +124,8 @@ export const subscriptionRouter = createTRPCRouter({
     }),
 
   // Get active subscriptions (not expired)
-  getActive: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.query.organizationToFeed.findMany({
+  getActive: protectedProcedure.query(async () => {
+    return await db.query.organizationToFeed.findMany({
       where: sql`${organizationToFeed.accessUntil} > CURRENT_TIMESTAMP`,
       with: {
         organization: true,

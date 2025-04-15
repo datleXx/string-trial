@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizations } from "~/server/db/schema";
+import { db } from "~/server/db";
 
 const createOrganizationSchema = z.object({
   name: z.string().min(1),
@@ -11,25 +12,25 @@ const createOrganizationSchema = z.object({
 });
 
 export const organizationRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.query.organizations.findMany({
+  getAll: protectedProcedure.query(async () => {
+    return await db.query.organizations.findMany({
       orderBy: [desc(organizations.name)],
     });
   }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return await ctx.db.query.organizations.findFirst({
+    .query(async ({ input }) => {
+      return await db.query.organizations.findFirst({
         where: eq(organizations.id, input.id),
       });
     }),
 
   create: protectedProcedure
     .input(createOrganizationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       try {
-        const result = await ctx.db
+        const result = await db
           .insert(organizations)
           .values({
             name: input.name,
@@ -51,9 +52,9 @@ export const organizationRouter = createTRPCRouter({
 
   update: protectedProcedure
     .input(createOrganizationSchema.extend({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...updateData } = input;
-      return await ctx.db
+      return await db
         .update(organizations)
         .set(updateData)
         .where(eq(organizations.id, id));
@@ -61,8 +62,8 @@ export const organizationRouter = createTRPCRouter({
 
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db
+    .mutation(async ({ input }) => {
+      return await db
         .delete(organizations)
         .where(eq(organizations.id, input.id));
     }),
