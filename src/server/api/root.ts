@@ -4,6 +4,7 @@ import { organizationRouter } from "~/server/api/routers/organization";
 import { feedRouter } from "~/server/api/routers/feed";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { adminRouter } from "~/server/api/routers/admin";
+import { metricsRouter } from "~/server/api/routers/metrics";
 /**
  * This is the primary router for your server.
  *
@@ -12,6 +13,7 @@ import { adminRouter } from "~/server/api/routers/admin";
 export const appRouter = createTRPCRouter({
   subscription: subscriptionRouter,
   billing: billingRouter,
+  metrics: metricsRouter,
   organization: organizationRouter,
   feed: feedRouter,
   admin: adminRouter,

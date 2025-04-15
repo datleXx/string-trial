@@ -10,7 +10,9 @@ import { Separator } from "~/components/ui/separator";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function BillingMetrics() {
-  const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery({});
+  const { data: metrics, isLoading } = api.metrics.getBillingMetrics.useQuery({
+    months: 12,
+  });
 
   if (!metrics) {
     return null;

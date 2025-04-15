@@ -13,22 +13,7 @@ import {
 } from "~/components/ui/table";
 import { NoData } from "~/components/ui/no-data";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
-import dayjs from "dayjs";
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+import { AdvancedMetrics } from "./components/AdvancedMetrics";
 
 function MetricCard({
   title,
@@ -62,7 +47,7 @@ function MetricCard({
 }
 
 function DashboardMetrics() {
-  const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery({
+  const { data: metrics, isLoading } = api.metrics.getBillingMetrics.useQuery({
     months: 12,
   });
 
@@ -84,40 +69,6 @@ function DashboardMetrics() {
     style: "currency",
     currency: "USD",
   }).format(metrics.current.average_invoice_value);
-
-  // Prepare data for billing frequency chart
-  const billing_frequency_data = [
-    {
-      name: "Monthly",
-      value: metrics.current.monthly_subscriptions,
-    },
-    {
-      name: "Yearly",
-      value: metrics.current.yearly_subscriptions,
-    },
-  ];
-
-  // Prepare data for collection metrics
-  const collection_data = [
-    {
-      name: "Paid",
-      value: metrics.current.total_paid,
-    },
-    {
-      name: "Pending",
-      value: metrics.current.total_pending,
-    },
-  ];
-
-  // Prepare data for historical revenue chart
-  const revenue_history = metrics.historical.map((month) => ({
-    name: dayjs(month.month).format("MMM YY"),
-    month: month.month,
-    MRR: month.mrr,
-    ARR: month.arr,
-    "Active Subscriptions": month.active_subscriptions,
-    "New Subscriptions": month.new_subscriptions,
-  }));
 
   return (
     <div className="space-y-8">
@@ -144,192 +95,7 @@ function DashboardMetrics() {
         />
       </div>
 
-      {/* New Historical Revenue Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue & Subscription Growth</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={revenue_history}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0088FE" stopOpacity={0.7} />
-                    <stop offset="95%" stopColor="#0088FE" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="arrGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C49F" stopOpacity={0.7} />
-                    <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id="activeSubsGradient"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#FF8042" stopOpacity={0} />
-                    <stop offset="95%" stopColor="#FF8042" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id="newSubsGradient"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#FFBB28" stopOpacity={0} />
-                    <stop offset="95%" stopColor="#FFBB28" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis
-                  yAxisId="left"
-                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  tickFormatter={(value: number) => String(Math.round(value))}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(value: number, name: string) => {
-                    if (name === "MRR" || name === "ARR") {
-                      return [`$${value.toFixed(2)}`, name];
-                    }
-                    return [Math.round(value), name];
-                  }}
-                  labelFormatter={(label: string) => label}
-                />
-                <Legend />
-                <Area
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="MRR"
-                  stroke="#0088FE"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#mrrGradient)"
-                />
-                <Area
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="ARR"
-                  stroke="#00C49F"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#arrGradient)"
-                />
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="Active Subscriptions"
-                  stroke="#FF8042"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#activeSubsGradient)"
-                />
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="New Subscriptions"
-                  stroke="#FFBB28"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#newSubsGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Billing Frequency Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing Frequency Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={billing_frequency_data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {billing_frequency_data.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Collection Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Collection Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={collection_data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, value }) =>
-                      `${name} ($${Number(value).toFixed(2)})`
-                    }
-                  >
-                    {collection_data.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => `$${Number(value).toFixed(2)}`}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdvancedMetrics />
 
       <RecentSubscriptions />
     </div>
