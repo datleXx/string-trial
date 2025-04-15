@@ -174,32 +174,5 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     { align: "right" },
   );
 
-  // Footer
-  y = doc.internal.pageSize.height - 25;
-  doc.setDrawColor(230, 230, 230);
-  doc.setLineWidth(0.5);
-  doc.line(
-    page_margin,
-    y - 10,
-    doc.internal.pageSize.width - page_margin,
-    y - 10,
-  );
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(secondary_color[0], secondary_color[1], secondary_color[2]);
-  doc.text("Thank you for your business!", doc.internal.pageSize.width / 2, y, {
-    align: "center",
-  });
-
-  doc.setFontSize(8);
-  y += 6;
-  doc.text(
-    "Payment is due within 30 days of invoice date.",
-    doc.internal.pageSize.width / 2,
-    y,
-    { align: "center" },
-  );
-
   return Buffer.from(doc.output("arraybuffer"));
 }
