@@ -1,6 +1,6 @@
 "use client";
 import { type ReactNode, useEffect } from "react";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
@@ -15,11 +15,13 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
-
+import { cn } from "~/lib/utils";
 function DashboardLayout({ children }: { children: ReactNode }) {
   const { is_authenticated, user } = useRoleGuard({
     required_roles: ["admin", "user", "viewer"],
   });
+
+  const pathname = usePathname();
 
   const has_elevated_access = ["admin", "viewer"].includes(user?.role ?? "");
 
@@ -45,14 +47,20 @@ function DashboardLayout({ children }: { children: ReactNode }) {
           <nav className="space-y-1 p-3">
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100",
+                pathname === "/dashboard" && "bg-gray-100",
+              )}
             >
               <Bell className="h-4 w-4" />
               Overview
             </Link>
             <Link
               href="/dashboard/subscriptions"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100",
+                pathname === "/dashboard/subscriptions" && "bg-gray-100",
+              )}
             >
               <CheckSquare className="h-4 w-4" />
               Subscriptions
@@ -61,14 +69,20 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               <>
                 <Link
                   href="/dashboard/billing"
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100",
+                    pathname === "/dashboard/billing" && "bg-gray-100",
+                  )}
                 >
                   <FileText className="h-4 w-4" />
                   Billing
                 </Link>
                 <Link
                   href="/dashboard/admin/users"
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100",
+                    pathname === "/dashboard/admin/users" && "bg-gray-100",
+                  )}
                 >
                   <BarChart2 className="h-4 w-4" />
                   Admin
@@ -77,7 +91,10 @@ function DashboardLayout({ children }: { children: ReactNode }) {
             )}
             <Link
               href="/dashboard/organizations"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-light text-gray-700 hover:bg-gray-100",
+                pathname === "/dashboard/organizations" && "bg-gray-100",
+              )}
             >
               <Mail className="h-4 w-4" />
               Organizations
