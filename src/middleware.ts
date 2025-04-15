@@ -19,9 +19,12 @@ export async function middleware(request: NextRequest) {
 
   // Check if user is authenticated
   if (!token) {
-    const url = new URL("/auth/signin", request.url);
+    console.log("Redirecting to signin page...");
+    const url = new URL("auth/signin", request.url);
     url.searchParams.set("callbackUrl", request.url);
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    console.log("Redirect URL:", url.toString());
+    return response;
   }
 
   // Check for protected admin routes
@@ -32,6 +35,8 @@ export async function middleware(request: NextRequest) {
     pathname === "/dashboard/admin/users"
   ) {
     if (token.role !== "admin") {
+      console.log("Redirecting to dashboard page...");
+      console.log("Token:", token);
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
