@@ -23,7 +23,10 @@ const config = {
     });
     
     return config;
-  }
+  },
+  cookies: {
+    secure: process.env.NODE_ENV === "production",
+  },
 };
 
 export default config;
