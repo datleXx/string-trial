@@ -23,12 +23,12 @@ function BillingMetrics() {
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.totalMRR);
+  }).format(metrics.total_mrr);
 
   const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.totalARR);
+  }).format(metrics.total_arr);
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,7 +60,7 @@ function BillingMetrics() {
             Total Organizations
           </CardTitle>
           <p className="mt-2 text-3xl font-semibold">
-            {metrics.organizationCount}
+            {metrics.organization_count}
           </p>
           <p className="text-muted-foreground mt-2 text-sm">
             Active paying customers

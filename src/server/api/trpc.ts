@@ -131,3 +131,28 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.session?.user?.role !== "admin") {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be an admin to access this resource",
+    });
+  }
+  return next();
+});
+
+export const elevatedProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    if (
+      ctx.session?.user?.role !== "admin" &&
+      ctx.session?.user?.role !== "viewer"
+    ) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be an admin or viewer to access this resource",
+      });
+    }
+    return next();
+  },
+);

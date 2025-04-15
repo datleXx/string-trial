@@ -7,7 +7,7 @@ import {
   invoices,
 } from "~/server/db/schema";
 import dayjs from "dayjs";
-import { elevatedProcedure, adminProcedure } from "./admin";
+import { elevatedProcedure, adminProcedure } from "~/server/api/trpc";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -107,25 +107,25 @@ export const billingRouter = createTRPCRouter({
           },
         });
 
-        const monthlyTotal = subscriptions
+        const monthly_total = subscriptions
           .filter((sub) => sub.billingFrequency === "monthly")
           .reduce((sum, sub) => sum + Number(sub.billingAmount), 0);
 
-        const yearlyTotal = subscriptions
+        const yearly_total = subscriptions
           .filter((sub) => sub.billingFrequency === "yearly")
           .reduce((sum, sub) => sum + Number(sub.billingAmount), 0);
 
         return {
-          monthlyRecurring: monthlyTotal,
-          yearlyRecurring: yearlyTotal,
-          totalSubscriptions: subscriptions.length,
+          monthly_recurring: monthly_total,
+          yearly_recurring: yearly_total,
+          total_subscriptions: subscriptions.length,
         };
       } catch (error) {
         console.error(error);
         return {
-          monthlyRecurring: 0,
-          yearlyRecurring: 0,
-          totalSubscriptions: 0,
+          monthly_recurring: 0,
+          yearly_recurring: 0,
+          total_subscriptions: 0,
         };
       }
     }),
@@ -141,16 +141,17 @@ export const billingRouter = createTRPCRouter({
 
     // Calculate metrics
     const metrics = {
-      totalMRR: subscriptions
+      total_mrr: subscriptions
         .filter((sub) => sub.billingFrequency === "monthly")
         .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-      totalARR: subscriptions
+      total_arr: subscriptions
         .filter((sub) => sub.billingFrequency === "yearly")
         .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-      organizationCount: new Set(subscriptions.map((sub) => sub.organizationId))
-        .size,
-      subscriptionCount: subscriptions.length,
-      averageSubscriptionValue:
+      organization_count: new Set(
+        subscriptions.map((sub) => sub.organizationId),
+      ).size,
+      subscription_count: subscriptions.length,
+      average_subscription_value:
         subscriptions.length > 0
           ? subscriptions.reduce(
               (sum, sub) => sum + Number(sub.billingAmount),

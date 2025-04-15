@@ -1,37 +1,16 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "~/server/api/trpc";
 import { users } from "~/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (ctx.session?.user?.role !== "admin") {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be an admin to access this resource",
-    });
-  }
-  return next();
-});
-
-export const elevatedProcedure = protectedProcedure.use(
-  async ({ ctx, next }) => {
-    if (
-      ctx.session?.user?.role !== "admin" &&
-      ctx.session?.user?.role !== "viewer"
-    ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You must be an admin or viewer to access this resource",
-      });
-    }
-    return next();
-  },
-);
-
 export const adminRouter = createTRPCRouter({
   // Get all users
-  getAllUsers: elevatedProcedure.query(async ({ ctx }) => {
+  getAllUsers: protectedProcedure.query(async ({ ctx }) => {
     const allUsers = await ctx.db.query.users.findMany({
       orderBy: [desc(users.id)],
     });
