@@ -6,6 +6,7 @@ import {
   organizations,
   invoices,
 } from "~/server/db/schema";
+import dayjs from "dayjs";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -57,7 +58,7 @@ export const billingRouter = createTRPCRouter({
         0,
       );
 
-      const due_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      const due_date = dayjs(input.dueDate).toDate();
       const invoice_number = `INV-${Date.now()}`;
 
       // Create invoice record in database

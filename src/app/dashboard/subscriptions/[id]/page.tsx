@@ -9,15 +9,15 @@ interface EditSubscriptionPageProps {
 export default async function EditSubscriptionPage({
   params,
 }: EditSubscriptionPageProps) {
-  const subscriptionId = (await params).id;
+  const subscription_id = (await params).id;
 
-  if (!subscriptionId) {
+  if (!subscription_id) {
     notFound();
   }
 
   // Fetch subscription, organizations, and feeds
   const [subscription, organizations, feeds] = await Promise.all([
-    api.subscription.getById({ id: subscriptionId }),
+    api.subscription.getById({ id: subscription_id }),
     api.organization.getAll(),
     api.feed.getAll(),
   ]);

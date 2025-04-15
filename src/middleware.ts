@@ -10,8 +10,10 @@ export async function middleware(request: NextRequest) {
   });
 
   console.log("Middleware Debug:", {
-    hasToken: !!token,
-    tokenRole: token?.role,
+    has_token: !!token,
+    token_role: token?.role,
+    token_sub: token?.sub,
+    full_token: token,
     pathname: request.nextUrl.pathname,
   });
 

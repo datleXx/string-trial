@@ -50,10 +50,10 @@ export const authConfig = {
   secret: env.AUTH_SECRET,
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days - should match session maxAge
+    maxAge: 30 * 24 * 60 * 60,
   },
   pages: {
     signIn: "/auth/signin",
@@ -61,7 +61,6 @@ export const authConfig = {
   },
   callbacks: {
     signIn: async ({ user }) => {
-      // Update lastLogin timestamp
       if (user.id) {
         await db
           .update(users)

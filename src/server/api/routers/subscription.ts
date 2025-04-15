@@ -4,7 +4,6 @@ import { desc, eq, sql } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
 
-// Input validation schemas
 const subscriptionIdSchema = z.object({ id: z.string() });
 
 const createSubscriptionSchema = z.object({
@@ -54,7 +53,6 @@ export const subscriptionRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createSubscriptionSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify organization and feed exist
       const [org, feed] = await Promise.all([
         ctx.db.query.organizations.findFirst({
           where: eq(organizations.id, input.organizationId),
@@ -88,7 +86,6 @@ export const subscriptionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
 
-      // Convert types for database
       const processedData = {
         ...updateData,
         accessUntil: updateData.accessUntil
