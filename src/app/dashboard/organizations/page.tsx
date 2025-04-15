@@ -23,7 +23,7 @@ export default function OrganizationsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 font-light">
           Manage and monitor organizations across the platform.
         </p>
       </div>
@@ -79,16 +79,16 @@ export default function OrganizationsPage() {
                           </div>
                           <div>
                             <div className="font-medium">{org.name}</div>
-                            <div className="text-muted-foreground font-light text-sm md:hidden">
+                            <div className="text-muted-foreground text-sm font-light md:hidden">
                               {org.billingEmail}
                             </div>
-                            <div className="text-muted-foreground font-light text-sm">
+                            <div className="text-muted-foreground text-xs font-light">
                               ID: {org.id}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell font-light">
+                      <TableCell className="hidden font-light md:table-cell">
                         {org.billingEmail}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -100,10 +100,10 @@ export default function OrganizationsPage() {
                           {org.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell font-light">
+                      <TableCell className="hidden font-light lg:table-cell">
                         {org.createdAt.toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell font-light">
+                      <TableCell className="hidden font-light lg:table-cell">
                         {org.updatedAt?.toLocaleDateString() ?? "Never"}
                       </TableCell>
                       <TableCell className="text-right">
