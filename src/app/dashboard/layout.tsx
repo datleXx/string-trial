@@ -18,8 +18,10 @@ import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function DashboardLayout({ children }: { children: ReactNode }) {
   const { is_authenticated, user } = useRoleGuard({
-    required_roles: ["admin", "user"],
+    required_roles: ["admin", "user", "viewer"],
   });
+
+  const has_elevated_access = ["admin", "viewer"].includes(user?.role ?? "");
 
   useEffect(() => {
     if (!is_authenticated) {
@@ -55,7 +57,7 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               <CheckSquare className="h-4 w-4" />
               Subscriptions
             </Link>
-            {user?.role === "admin" && (
+            {has_elevated_access && (
               <>
                 <Link
                   href="/dashboard/billing"

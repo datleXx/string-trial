@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { api } from "~/trpc/react";
 
 type RoleGuardProps = {
-  required_roles?: ("admin" | "user")[];
+  required_roles?: ("admin" | "user" | "viewer")[];
   redirect_to?: string;
   children?: React.ReactNode;
 };
@@ -28,7 +28,7 @@ export function useRoleGuard({
   const is_authenticated = status === "authenticated" && !!session?.user;
 
   const has_required_role = required_roles
-    ? required_roles.includes(user_data?.role as "admin" | "user")
+    ? required_roles.includes(user_data?.role as "admin" | "user" | "viewer")
     : true;
 
   useEffect(() => {

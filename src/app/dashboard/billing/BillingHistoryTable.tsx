@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Check, MoreVertical, Trash2 } from "lucide-react";
+import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 type BillingHistory = RouterOutputs["billing"]["getBillingHistory"][number];
 
@@ -61,6 +62,12 @@ export function BillingHistoryTable({
   billing_history,
 }: BillingHistoryTableProps) {
   const utils = api.useUtils();
+
+  const { user } = useRoleGuard({
+    required_roles: ["admin", "viewer"],
+  });
+
+  const view_only = user?.role === "viewer";
 
   const updateStatusMutation = api.billing.updateInvoiceStatus.useMutation({
     onSuccess: () => {
@@ -149,6 +156,7 @@ export function BillingHistoryTable({
                         <DropdownMenuItem
                           onClick={() => handleDelete(invoice.id)}
                           className="text-red-600 hover:text-red-700"
+                          disabled={view_only}
                         >
                           <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                           <span className="text-red-600">Delete</span>
@@ -156,6 +164,7 @@ export function BillingHistoryTable({
                         <DropdownMenuItem
                           onClick={() => handleMarkAsPaid(invoice.id)}
                           className="text-green-600"
+                          disabled={view_only}
                         >
                           <Check className="mr-2 h-4 w-4 text-green-600" />
                           <span className="text-green-600">Mark as Paid</span>

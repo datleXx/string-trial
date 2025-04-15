@@ -7,6 +7,7 @@ import {
   invoices,
 } from "~/server/db/schema";
 import dayjs from "dayjs";
+import { elevatedProcedure, adminProcedure } from "./admin";
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -24,7 +25,7 @@ const updateInvoiceStatusSchema = z.object({
 
 export const billingRouter = createTRPCRouter({
   // Generate invoice for an organization
-  generateInvoice: protectedProcedure
+  generateInvoice: adminProcedure
     .input(generateInvoiceSchema)
     .mutation(async ({ ctx, input }) => {
       const organization = await ctx.db.query.organizations.findFirst({
@@ -78,7 +79,7 @@ export const billingRouter = createTRPCRouter({
     }),
 
   // Update invoice status
-  updateInvoiceStatus: protectedProcedure
+  updateInvoiceStatus: adminProcedure
     .input(updateInvoiceStatusSchema)
     .mutation(async ({ ctx, input }) => {
       const [updatedInvoice] = await ctx.db
@@ -95,7 +96,7 @@ export const billingRouter = createTRPCRouter({
     }),
 
   // Get billing summary for an organization
-  getBillingSummary: protectedProcedure
+  getBillingSummary: elevatedProcedure
     .input(z.object({ organizationId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -197,7 +198,7 @@ export const billingRouter = createTRPCRouter({
       });
     }),
 
-  updateInvoice: protectedProcedure
+  updateInvoice: adminProcedure
     .input(
       z.object({
         invoiceId: z.string(),
@@ -221,7 +222,7 @@ export const billingRouter = createTRPCRouter({
       return updated_invoice;
     }),
 
-  deleteInvoice: protectedProcedure
+  deleteInvoice: adminProcedure
     .input(
       z.object({
         invoiceId: z.string(),

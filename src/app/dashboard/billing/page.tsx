@@ -7,7 +7,7 @@ import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
 import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Separator } from "~/components/ui/separator";
-import { RoleGuard } from "~/hooks/useRoleGuard";
+import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function BillingMetrics() {
   const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery();
@@ -111,37 +111,41 @@ function BillingHistoryLoading() {
 }
 
 export default function BillingPage() {
+  const { user } = useRoleGuard({
+    required_roles: ["admin", "viewer"],
+  });
+
+  const view_only = user?.role === "viewer";
+
   return (
-    <RoleGuard required_roles={["admin"]}>
-      <div className="container mx-auto space-y-8 py-10">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Billing Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage billing, generate invoices, and view financial metrics.
-          </p>
-        </div>
-
-        <Separator className="my-6" />
-
-        <BillingMetrics />
-
-        <Tabs defaultValue="history" className="mt-8">
-          <TabsList className="mb-4">
-            <TabsTrigger value="history">Billing History</TabsTrigger>
-            <TabsTrigger value="invoice">Invoice Management</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="history">
-            <BillingHistorySection />
-          </TabsContent>
-
-          <TabsContent value="invoice">
-            <GenerateInvoiceSection />
-          </TabsContent>
-        </Tabs>
+    <div className="container mx-auto space-y-8 py-10">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Billing Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage billing, generate invoices, and view financial metrics.
+        </p>
       </div>
-    </RoleGuard>
+
+      <Separator className="my-6" />
+
+      <BillingMetrics />
+
+      <Tabs defaultValue="history" className="mt-8">
+        <TabsList className="mb-4">
+          <TabsTrigger value="history">Billing History</TabsTrigger>
+          <TabsTrigger disabled={view_only} value="invoice">
+            Invoice Management
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="history">
+          <BillingHistorySection />
+        </TabsContent>
+
+        <TabsContent value="invoice">
+          <GenerateInvoiceSection />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
