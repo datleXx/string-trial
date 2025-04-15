@@ -87,23 +87,5 @@ export const authConfig = {
       console.log("Token after callback:", token);
       return token;
     },
-    // authorized({
-    //   auth,
-    //   request: { nextUrl },
-    // }: {
-    //   auth: { user: Session["user"] } | null;
-    //   request: { nextUrl: URL };
-    // }) {
-    //   const isLoggedIn = !!auth?.user;
-    //   const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-
-    //   if (isOnDashboard) {
-    //     if (isLoggedIn) return true;
-    //     return false; // Redirect unauthenticated users to login page
-    //   } else if (isLoggedIn) {
-    //     return true;
-    //   }
-    //   return true;
-    // },
   },
 } satisfies NextAuthConfig;
