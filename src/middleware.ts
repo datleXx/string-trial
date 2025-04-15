@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   // Check if user is authenticated
   if (!token) {
     console.log("Redirecting to signin page...");
-    const url = new URL("auth/signin", request.url);
+    const url = new URL("/auth/signin", request.url);
     url.searchParams.set("callbackUrl", request.url);
     const response = NextResponse.redirect(url);
     console.log("Redirect URL:", url.toString());
