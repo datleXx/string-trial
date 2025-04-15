@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -21,7 +20,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "~/components/ui/dropdown-menu";
-import { MoreHorizontalIcon, MoreVertical } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
 

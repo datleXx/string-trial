@@ -150,6 +150,7 @@ export function SubscriptionForm({
         <div className="space-y-2">
           <Label htmlFor="organization">Organization</Label>
           <Select
+            disabled={!!existing_subscription?.id}
             value={String(form_data.organizationId)}
             onValueChange={(value) =>
               setFormData((prev) => ({
@@ -174,6 +175,7 @@ export function SubscriptionForm({
         <div className="space-y-2">
           <Label htmlFor="feed">Feed</Label>
           <Select
+            disabled={!!existing_subscription?.id}
             value={String(form_data.feedId)}
             onValueChange={(value) =>
               setFormData((prev) => ({
