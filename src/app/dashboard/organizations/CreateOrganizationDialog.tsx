@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -14,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import toast from "react-hot-toast";
 
 interface FormData {
   name: string;
@@ -21,18 +28,29 @@ interface FormData {
   status: "active" | "inactive";
 }
 
-export default function NewOrganizationPage() {
-  const router = useRouter();
+interface CreateOrganizationDialogProps {
+  children: React.ReactNode;
+}
+
+export function CreateOrganizationDialog({
+  children,
+}: CreateOrganizationDialogProps) {
+  const [open, setOpen] = useState(false);
   const [form_data, setFormData] = useState<FormData>({
     name: "",
     billingEmail: "",
     status: "active",
   });
+  const utils = api.useUtils();
 
   const createMutation = api.organization.create.useMutation({
     onSuccess: () => {
-      router.push("/dashboard/organizations");
-      router.refresh();
+      toast.success("Organization created successfully");
+      setOpen(false);
+      void utils.organization.getAll.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to create organization");
     },
   });
 
@@ -54,13 +72,14 @@ export default function NewOrganizationPage() {
   };
 
   return (
-    <div className="container mx-auto w-1/2 py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Organization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Organization</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Organization Name</Label>
               <Input
@@ -106,24 +125,22 @@ export default function NewOrganizationPage() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => router.back()}
-                type="button"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending
-                  ? "Creating..."
-                  : "Create Organization"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              type="button"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createMutation.isPending}>
+              {createMutation.isPending ? "Creating..." : "Create Organization"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

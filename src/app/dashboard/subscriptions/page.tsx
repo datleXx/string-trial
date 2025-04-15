@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { api } from "~/trpc/server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -14,6 +13,7 @@ import {
 } from "~/components/ui/table";
 import { NoData } from "~/components/ui/no-data";
 import { TableSkeleton } from "~/components/ui/skeleton";
+import { SubscriptionDialog } from "./CreateSubscriptionDialog";
 
 function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   const now = new Date();
@@ -86,9 +86,11 @@ async function SubscriptionsList() {
                     {new Date(sub.accessUntil).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" asChild>
-                      <span className="text-xs">Edit</span>
-                    </Button>
+                    <SubscriptionDialog mode="update" initial_data={sub}>
+                      <Button variant="outline" size="sm" asChild>
+                        <span className="text-xs">Edit</span>
+                      </Button>
+                    </SubscriptionDialog>
                   </TableCell>
                 </TableRow>
               ))}
@@ -112,9 +114,9 @@ export default async function SubscriptionsPage() {
             Manage and monitor active subscriptions across organizations.
           </p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/dashboard/subscriptions/new">New Subscription</Link>
-        </Button>
+        <SubscriptionDialog mode="create">
+          <Button className="w-full sm:w-auto">New Subscription</Button>
+        </SubscriptionDialog>
       </div>
 
       <Suspense fallback={<TableSkeleton />}>

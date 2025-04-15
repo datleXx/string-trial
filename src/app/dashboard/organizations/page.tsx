@@ -15,8 +15,12 @@ import { Badge } from "~/components/ui/badge";
 import { Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { TableSkeleton } from "~/components/ui/skeleton";
+import { CreateOrganizationDialog } from "./CreateOrganizationDialog";
+import { ViewOrganizationDialog } from "./ViewOrganizationDialog";
+
 export default function OrganizationsPage() {
-  const { data: organizations } = api.organization.getAll.useQuery();
+  const { data: organizations, isLoading } = api.organization.getAll.useQuery();
   const router = useRouter();
 
   return (
@@ -33,17 +37,19 @@ export default function OrganizationsPage() {
           <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <CardTitle>Organizations</CardTitle>
             <div className="flex gap-4">
-              <Button asChild className="w-full sm:w-auto">
-                <Link href="/dashboard/organizations/new">
+              <CreateOrganizationDialog>
+                <Button className="w-full sm:w-auto">
                   <Building2 className="mr-2 h-4 w-4" />
                   New Organization
-                </Link>
-              </Button>
+                </Button>
+              </CreateOrganizationDialog>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {organizations?.length === 0 ? (
+          {isLoading ? (
+            <TableSkeleton />
+          ) : organizations?.length === 0 ? (
             <NoData
               title="No organizations found"
               message="You can create a new organization by clicking the button above."
@@ -107,15 +113,13 @@ export default function OrganizationsPage() {
                         {org.updatedAt?.toLocaleDateString() ?? "Never"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          onClick={() => {
-                            router.push(`/dashboard/organizations/${org.id}`);
-                          }}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <span className="hidden text-xs sm:inline">View</span>
-                        </Button>
+                        <ViewOrganizationDialog organizationId={org.id}>
+                          <Button variant="outline" size="sm">
+                            <span className="hidden text-xs sm:inline">
+                              View
+                            </span>
+                          </Button>
+                        </ViewOrganizationDialog>
                       </TableCell>
                     </TableRow>
                   ))}

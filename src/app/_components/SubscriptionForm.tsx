@@ -28,6 +28,7 @@ interface SubscriptionFormProps {
   organizations: Organization[];
   feeds: Feed[];
   onSuccess?: () => void;
+  className?: string;
 }
 
 export function SubscriptionForm({
@@ -35,6 +36,7 @@ export function SubscriptionForm({
   organizations,
   feeds,
   onSuccess,
+  className,
 }: SubscriptionFormProps) {
   const router = useRouter();
   const [form_data, setFormData] = useState(
@@ -129,194 +131,184 @@ export function SubscriptionForm({
     }));
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {initial_data?.id ? "Update Subscription" : "Create New Subscription"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {existing_subscription && !initial_data?.id && (
-            <div className="rounded-lg border border-red-500 bg-red-50 p-4 text-sm text-red-600">
-              This organization already has an active subscription to this feed
-              (expires{" "}
-              {new Date(existing_subscription.accessUntil).toLocaleDateString()}
-              ).
-            </div>
-          )}
-          <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="organization">Organization</Label>
-              <Select
-                value={String(form_data.organizationId)}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    organizationId: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={String(org.id)}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+  const content = (
+    <form onSubmit={handleSubmit} className="space-y-6 p-2 mt-2">
+      {existing_subscription && !initial_data?.id && (
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 text-sm text-red-600">
+          This organization already has an active subscription to this feed
+          (expires{" "}
+          {new Date(existing_subscription.accessUntil).toLocaleDateString()}).
+        </div>
+      )}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="organization">Organization</Label>
+          <Select
+            value={String(form_data.organizationId)}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                organizationId: value,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select organization" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={String(org.id)}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="feed">Feed</Label>
-              <Select
-                value={String(form_data.feedId)}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    feedId: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select feed" />
-                </SelectTrigger>
-                <SelectContent>
-                  {feeds.map((feed) => (
-                    <SelectItem key={feed.id} value={String(feed.id)}>
-                      {feed.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="feed">Feed</Label>
+          <Select
+            value={String(form_data.feedId)}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                feedId: value,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select feed" />
+            </SelectTrigger>
+            <SelectContent>
+              {feeds.map((feed) => (
+                <SelectItem key={feed.id} value={String(feed.id)}>
+                  {feed.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="accessUntil">Access Until</Label>
-              <Input
-                type="date"
-                id="accessUntil"
-                value={form_data.accessUntil.toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    accessUntil: new Date(e.target.value),
-                  }))
-                }
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="accessUntil">Access Until</Label>
+          <Input
+            type="date"
+            id="accessUntil"
+            value={form_data.accessUntil.toISOString().split("T")[0]}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                accessUntil: new Date(e.target.value),
+              }))
+            }
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="billingAmount">Billing Amount</Label>
-              <div className="relative">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
-                  $
-                </span>
-                <Input
-                  type="number"
-                  id="billingAmount"
-                  className="pl-7"
-                  value={form_data.billingAmount}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      billingAmount: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="billingFrequency">Billing Frequency</Label>
-              <Select
-                value={form_data.billingFrequency ?? "monthly"}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    billingFrequency: value as "monthly" | "yearly",
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select billing frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="successEmails">
-                Success Notification Emails (comma-separated)
-              </Label>
-              <Input
-                id="successEmails"
-                value={form_data.successEmails?.join(", ")}
-                onChange={(e) =>
-                  handleEmailArrayChange("successEmails", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="failEmails">
-                Failure Notification Emails (comma-separated)
-              </Label>
-              <Input
-                id="failEmails"
-                value={form_data.failEmails?.join(", ")}
-                onChange={(e) =>
-                  handleEmailArrayChange("failEmails", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="schemaUpdateEmails">
-                Schema Update Emails (comma-separated)
-              </Label>
-              <Input
-                id="schemaUpdateEmails"
-                value={form_data.schemaUpdateEmails?.join(", ")}
-                onChange={(e) =>
-                  handleEmailArrayChange("schemaUpdateEmails", e.target.value)
-                }
-              />
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                (createMutation.isPending ?? updateMutation.isPending) ||
-                (existing_subscription && !initial_data?.id ? true : false)
+        <div className="space-y-2">
+          <Label htmlFor="billingAmount">Billing Amount</Label>
+          <div className="relative">
+            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
+              $
+            </span>
+            <Input
+              type="number"
+              id="billingAmount"
+              className="pl-7"
+              value={form_data.billingAmount}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  billingAmount: e.target.value,
+                }))
               }
-            >
-              {(createMutation.isPending ?? updateMutation.isPending)
-                ? "Saving..."
-                : initial_data?.id
-                  ? "Update Subscription"
-                  : "Create Subscription"}
-            </Button>
+            />
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="billingFrequency">Billing Frequency</Label>
+          <Select
+            value={form_data.billingFrequency ?? "monthly"}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                billingFrequency: value as "monthly" | "yearly",
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select billing frequency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="yearly">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="successEmails">Success Notification Emails</Label>
+          <Input
+            id="successEmails"
+            placeholder="Enter comma-separated email addresses"
+            value={form_data.successEmails?.join(", ")}
+            onChange={(e) =>
+              handleEmailArrayChange("successEmails", e.target.value)
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="failEmails">Failure Notification Emails</Label>
+          <Input
+            id="failEmails"
+            placeholder="Enter comma-separated email addresses"
+            value={form_data.failEmails?.join(", ")}
+            onChange={(e) =>
+              handleEmailArrayChange("failEmails", e.target.value)
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="schemaUpdateEmails">Schema Update Emails</Label>
+          <Input
+            id="schemaUpdateEmails"
+            placeholder="Enter comma-separated email addresses"
+            value={form_data.schemaUpdateEmails?.join(", ")}
+            onChange={(e) =>
+              handleEmailArrayChange("schemaUpdateEmails", e.target.value)
+            }
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <Button variant="outline" onClick={() => onSuccess?.()} type="button">
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={
+            (createMutation.isPending ?? updateMutation.isPending) ||
+            (existing_subscription && !initial_data?.id ? true : false)
+          }
+        >
+          {(createMutation.isPending ?? updateMutation.isPending)
+            ? "Saving..."
+            : initial_data?.id
+              ? "Update Subscription"
+              : "Create Subscription"}
+        </Button>
+      </div>
+    </form>
   );
+
+  if (className) {
+    return content;
+  }
+
+  return <div>{content}</div>;
 }
