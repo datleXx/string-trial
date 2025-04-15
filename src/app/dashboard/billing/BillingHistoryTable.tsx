@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Check, MoreVertical, Trash2 } from "lucide-react";
+import { Check, MoreVertical, Trash2, Download } from "lucide-react";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 type BillingHistory = RouterOutputs["billing"]["getBillingHistory"][number];
@@ -85,6 +85,28 @@ export function BillingHistoryTable({
     },
   });
 
+  const generatePDFMutation = api.billing.generateInvoicePDF.useMutation({
+    onSuccess: (data) => {
+      const blob = new Blob([Buffer.from(data.content, "base64")], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = data.fileName;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to generate PDF");
+    },
+  });
+
   const handleMarkAsPaid = async (invoiceId: string) => {
     await updateStatusMutation.mutateAsync({
       invoiceId,
@@ -97,6 +119,10 @@ export function BillingHistoryTable({
     if (window.confirm("Are you sure you want to delete this invoice?")) {
       deleteInvoice({ invoiceId });
     }
+  };
+
+  const handleDownloadPDF = (invoiceId: string) => {
+    generatePDFMutation.mutate({ invoiceId });
   };
 
   if (billing_history.length === 0) {
@@ -168,6 +194,13 @@ export function BillingHistoryTable({
                         >
                           <Check className="mr-2 h-4 w-4 text-green-600" />
                           <span className="text-green-600">Mark as Paid</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDownloadPDF(invoice.id)}
+                          disabled={generatePDFMutation.isPending}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download PDF
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

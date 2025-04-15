@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, sql, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   organizationToFeed,
@@ -10,6 +10,8 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { elevatedProcedure, adminProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { generateInvoicePDF } from "~/server/services/pdf";
+import { TRPCError } from "@trpc/server";
 
 dayjs.extend(isBetween);
 
@@ -345,5 +347,67 @@ export const billingRouter = createTRPCRouter({
         .returning();
 
       return deleted_invoice;
+    }),
+
+  // Generate downloadable PDF for an invoice
+  generateInvoicePDF: protectedProcedure
+    .input(
+      z.object({
+        invoiceId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Fetch invoice with related data
+      const invoice = await db.query.invoices.findFirst({
+        where: eq(invoices.id, input.invoiceId),
+        with: {
+          organizationToFeed: {
+            with: {
+              feed: true,
+              organization: true,
+            },
+          },
+        },
+      });
+
+      if (!invoice) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice not found",
+        });
+      }
+
+      // Prepare data for PDF generation
+      const invoice_data = {
+        invoice_number: invoice.invoiceNumber,
+        organization: {
+          id: invoice.organizationToFeed.organization.id,
+          name: invoice.organizationToFeed.organization.name,
+          billing_email: invoice.organizationToFeed.organization.billingEmail,
+        },
+        billing_period: {
+          start_date: invoice.createdAt.toISOString(),
+          end_date: invoice.dueDate.toISOString(),
+        },
+        line_items: [
+          {
+            feed_name: invoice.organizationToFeed.feed.name,
+            amount: invoice.amount.toString(),
+            period: invoice.organizationToFeed.billingFrequency ?? "one-time",
+          },
+        ],
+        total_amount: Number(invoice.amount),
+        generated_at: invoice.createdAt.toISOString(),
+        due_date: invoice.dueDate.toISOString(),
+      };
+
+      // Generate PDF
+      const pdf_buffer = await generateInvoicePDF(invoice_data);
+
+      // Convert buffer to base64 for client-side download
+      return {
+        fileName: `invoice-${invoice.invoiceNumber}.pdf`,
+        content: pdf_buffer.toString("base64"),
+      };
     }),
 });
