@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
@@ -43,12 +43,35 @@ export function SubscriptionForm({
       feedId: feeds[0]?.id ?? "",
       accessUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       billingAmount: "0",
-      billingFrequency: "monthly" as const,
+      billingFrequency: "monthly" as "monthly" | "yearly",
       successEmails: [],
       failEmails: [],
       schemaUpdateEmails: [],
     },
   );
+
+  const [existing_subscription, setExistingSubscription] = useState<
+    RouterOutputs["subscription"]["getByOrganization"][number] | null
+  >(null);
+
+  // Query to check for existing subscriptions
+  const { data: org_subscriptions } =
+    api.subscription.getByOrganization.useQuery(
+      { organizationId: form_data.organizationId },
+      {
+        enabled: !!form_data.organizationId,
+      },
+    );
+
+  // Check for existing subscription whenever orgSubscriptions or feedId changes
+  useEffect(() => {
+    if (org_subscriptions) {
+      const existing = org_subscriptions.find(
+        (sub) => sub.feedId === form_data.feedId,
+      );
+      setExistingSubscription(existing ?? null);
+    }
+  }, [org_subscriptions, form_data.feedId]);
 
   const createMutation = api.subscription.create.useMutation({
     onSuccess: () => {
@@ -115,6 +138,14 @@ export function SubscriptionForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {existing_subscription && !initial_data?.id && (
+            <div className="rounded-lg border border-red-500 bg-red-50 p-4 text-sm text-red-600">
+              This organization already has an active subscription to this feed
+              (expires{" "}
+              {new Date(existing_subscription.accessUntil).toLocaleDateString()}
+              ).
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="organization">Organization</Label>
@@ -200,6 +231,26 @@ export function SubscriptionForm({
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="billingFrequency">Billing Frequency</Label>
+              <Select
+                value={form_data.billingFrequency ?? "monthly"}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    billingFrequency: value as "monthly" | "yearly",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select billing frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="successEmails">
                 Success Notification Emails (comma-separated)
@@ -252,7 +303,10 @@ export function SubscriptionForm({
             </Button>
             <Button
               type="submit"
-              disabled={createMutation.isPending ?? updateMutation.isPending}
+              disabled={
+                (createMutation.isPending ?? updateMutation.isPending) ||
+                (existing_subscription && !initial_data?.id ? true : false)
+              }
             >
               {(createMutation.isPending ?? updateMutation.isPending)
                 ? "Saving..."
