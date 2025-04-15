@@ -158,11 +158,11 @@ function DashboardMetrics() {
               >
                 <defs>
                   <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0088FE" stopOpacity={0.8} />
+                    <stop offset="5%" stopColor="#0088FE" stopOpacity={0.7} />
                     <stop offset="95%" stopColor="#0088FE" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="arrGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C49F" stopOpacity={0.8} />
+                    <stop offset="5%" stopColor="#00C49F" stopOpacity={0.7} />
                     <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient
@@ -186,7 +186,7 @@ function DashboardMetrics() {
                     <stop offset="95%" stopColor="#FFBB28" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis
                   yAxisId="left"
