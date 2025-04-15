@@ -14,18 +14,20 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next();
 });
 
-export const elevatedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (
-    ctx.session?.user?.role !== "admin" &&
-    ctx.session?.user?.role !== "viewer"
-  ) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be an admin or viewer to access this resource",
-    });
-  }
-  return next();
-});
+export const elevatedProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    if (
+      ctx.session?.user?.role !== "admin" &&
+      ctx.session?.user?.role !== "viewer"
+    ) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be an admin or viewer to access this resource",
+      });
+    }
+    return next();
+  },
+);
 
 export const adminRouter = createTRPCRouter({
   // Get all users
@@ -68,7 +70,7 @@ export const adminRouter = createTRPCRouter({
     }),
 
   // Get user details
-  getUserDetails: elevatedProcedure
+  getUserDetails: protectedProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
       const user = await ctx.db.query.users.findFirst({
