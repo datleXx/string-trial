@@ -1,6 +1,6 @@
 "use client";
 import { type ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
@@ -13,22 +13,19 @@ import {
   Mail,
   BarChart2,
 } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useRoleGuard } from "~/hooks/useRoleGuard";
 
 function DashboardLayout({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const is_admin = session?.user?.role === "admin";
+  const { is_authenticated, user } = useRoleGuard({
+    required_roles: ["admin", "user"],
+  });
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
+    if (!is_authenticated) {
+      redirect("/auth/signin");
     }
-  }, [status, router]);
-
-  if (status === "unauthenticated") {
-    return null;
-  }
+  }, [is_authenticated]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -58,7 +55,7 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               <CheckSquare className="h-4 w-4" />
               Subscriptions
             </Link>
-            {is_admin && (
+            {user?.role === "admin" && (
               <>
                 <Link
                   href="/dashboard/billing"
@@ -90,10 +87,10 @@ function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="border-t p-3">
           <div className="flex items-center gap-3 px-3">
             <div className="bg-muted relative h-8 w-8 overflow-hidden rounded-full">
-              {session?.user?.image ? (
+              {user?.image ? (
                 <Image
-                  src={session.user.image}
-                  alt={session.user.name ?? "User avatar"}
+                  src={user.image}
+                  alt={user.name ?? "User avatar"}
                   fill
                   className="object-cover"
                 />
@@ -104,11 +101,9 @@ function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">
-                {session?.user?.name}
-              </p>
+              <p className="truncate text-sm font-medium">{user?.name}</p>
               <p className="text-muted-foreground truncate text-xs">
-                {session?.user?.email}
+                {user?.email}
               </p>
             </div>
           </div>

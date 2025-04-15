@@ -71,10 +71,8 @@ export const authConfig = {
       },
     }),
     jwt: async ({ token, user, trigger }) => {
-      // If this is a sign in or token update event
       if (user || trigger === "update") {
         // Fetch fresh user data
-        console.log("Fetching fresh user data...");
         const dbUser = await db.query.users.findFirst({
           where: eq(users.id, token.sub!),
         });
