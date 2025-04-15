@@ -175,7 +175,10 @@ export function BillingHistoryTable({
                     {formatCurrency(invoice.amount)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusColor(invoice.status)}>
+                    <Badge
+                      className="capitalize"
+                      variant={getStatusColor(invoice.status)}
+                    >
                       {invoice.status}
                     </Badge>
                   </TableCell>

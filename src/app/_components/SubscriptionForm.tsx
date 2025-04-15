@@ -100,6 +100,14 @@ export function SubscriptionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (
+      isNaN(Number(form_data.billingAmount)) ||
+      Number(form_data.billingAmount) < 0
+    ) {
+      toast.error("Billing amount must be a number greater than 0");
+      return;
+    }
+
     const submit_data = {
       organizationId: form_data.organizationId,
       feedId: form_data.feedId,
@@ -132,7 +140,7 @@ export function SubscriptionForm({
   };
 
   const content = (
-    <form onSubmit={handleSubmit} className="space-y-6 p-2 mt-2">
+    <form onSubmit={handleSubmit} className="mt-2 space-y-6 p-2">
       {existing_subscription && !initial_data?.id && (
         <div className="rounded-lg border border-red-500 bg-red-50 p-4 text-sm text-red-600">
           This organization already has an active subscription to this feed
@@ -213,6 +221,8 @@ export function SubscriptionForm({
             <Input
               type="number"
               id="billingAmount"
+              step="0.01"
+              min="0"
               className="pl-7"
               value={form_data.billingAmount}
               onChange={(e) =>

@@ -8,12 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import Link from "next/link";
 import { NoData } from "~/components/ui/no-data";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Building2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { TableSkeleton } from "~/components/ui/skeleton";
 import { CreateOrganizationDialog } from "./CreateOrganizationDialog";
@@ -21,7 +19,6 @@ import { ViewOrganizationDialog } from "./ViewOrganizationDialog";
 
 export default function OrganizationsPage() {
   const { data: organizations, isLoading } = api.organization.getAll.useQuery();
-  const router = useRouter();
 
   return (
     <div className="space-y-6">
@@ -99,6 +96,7 @@ export default function OrganizationsPage() {
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         <Badge
+                          className="capitalize"
                           variant={
                             org.status === "active" ? "default" : "secondary"
                           }
