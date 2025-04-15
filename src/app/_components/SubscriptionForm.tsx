@@ -17,6 +17,7 @@ import {
 } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import toast from "react-hot-toast";
 
 type Organization =
   RouterOutputs["subscription"]["getAll"][number]["organization"];
@@ -51,15 +52,23 @@ export function SubscriptionForm({
 
   const createMutation = api.subscription.create.useMutation({
     onSuccess: () => {
-      router.refresh();
+      toast.success("Subscription created successfully");
+      router.push(`/dashboard/subscriptions`);
       onSuccess?.();
+    },
+    onError: () => {
+      toast.error("Failed to create subscription");
     },
   });
 
   const updateMutation = api.subscription.update.useMutation({
     onSuccess: () => {
-      router.refresh();
+      toast.success("Subscription updated successfully");
+      router.push(`/dashboard/subscriptions`);
       onSuccess?.();
+    },
+    onError: () => {
+      toast.error("Failed to update subscription");
     },
   });
 
