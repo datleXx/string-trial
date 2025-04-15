@@ -11,14 +11,38 @@ import {
 import { NoData } from "~/components/ui/no-data";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { Building2 } from "lucide-react";
+import { Building2, MoreVertical, Eye, Trash2 } from "lucide-react";
 import { api } from "~/trpc/react";
 import { TableSkeleton } from "~/components/ui/skeleton";
 import { CreateOrganizationDialog } from "./CreateOrganizationDialog";
 import { ViewOrganizationDialog } from "./ViewOrganizationDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import toast from "react-hot-toast";
 
 export default function OrganizationsPage() {
   const { data: organizations, isLoading } = api.organization.getAll.useQuery();
+  const utils = api.useUtils();
+
+  const deleteMutation = api.organization.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Organization deleted successfully");
+      void utils.organization.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete organization");
+    },
+  });
+
+  const handleDelete = (orgId: string) => {
+    if (window.confirm("Are you sure you want to delete this organization?")) {
+      deleteMutation.mutate({ id: orgId });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +93,7 @@ export default function OrganizationsPage() {
                     <TableHead className="hidden lg:table-cell">
                       Last Updated
                     </TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="table-cell">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -110,14 +134,32 @@ export default function OrganizationsPage() {
                       <TableCell className="hidden font-light lg:table-cell">
                         {org.updatedAt?.toLocaleDateString() ?? "Never"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <ViewOrganizationDialog organizationId={org.id}>
-                          <Button variant="outline" size="sm">
-                            <span className="hidden text-xs sm:inline">
-                              View
-                            </span>
-                          </Button>
-                        </ViewOrganizationDialog>
+                      <TableCell className="table-cell">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <ViewOrganizationDialog organizationId={org.id}>
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                <Eye className="mr-1 h-3 w-3" />
+                                <span className="text-sm">View</span>
+                              </DropdownMenuItem>
+                            </ViewOrganizationDialog>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(org.id)}
+                            >
+                              <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                              <span className="text-sm text-red-600">
+                                Delete
+                              </span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}

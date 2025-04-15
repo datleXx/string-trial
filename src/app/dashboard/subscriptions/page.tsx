@@ -1,5 +1,6 @@
-import { Suspense } from "react";
-import { api } from "~/trpc/server";
+"use client";
+
+import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -14,6 +15,15 @@ import {
 import { NoData } from "~/components/ui/no-data";
 import { TableSkeleton } from "~/components/ui/skeleton";
 import { SubscriptionDialog } from "./CreateSubscriptionDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "~/components/ui/dropdown-menu";
+import { MoreHorizontalIcon, MoreVertical } from "lucide-react";
+import { api } from "~/trpc/react";
+import toast from "react-hot-toast";
 
 function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   const now = new Date();
@@ -26,10 +36,24 @@ function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   );
 }
 
-async function SubscriptionsList() {
-  const subscriptions = await api.subscription.getAll();
+function SubscriptionsList() {
+  const utils = api.useUtils();
+  const { data: subscriptions, isLoading } = api.subscription.getAll.useQuery();
+  const deleteMutation = api.subscription.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Subscription deleted successfully");
+      void utils.subscription.getAll.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to delete subscription");
+    },
+  });
 
-  if (subscriptions.length === 0) {
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
+  if (!subscriptions || subscriptions.length === 0) {
     return (
       <NoData
         title="No subscriptions"
@@ -37,6 +61,12 @@ async function SubscriptionsList() {
       />
     );
   }
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this subscription?")) {
+      await deleteMutation.mutateAsync({ id });
+    }
+  };
 
   return (
     <Card>
@@ -52,7 +82,7 @@ async function SubscriptionsList() {
                 <TableHead className="hidden lg:table-cell">
                   Access Until
                 </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="table-cell">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -85,12 +115,33 @@ async function SubscriptionsList() {
                   <TableCell className="hidden font-light lg:table-cell">
                     {new Date(sub.accessUntil).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <SubscriptionDialog mode="update" initial_data={sub}>
-                      <Button variant="outline" size="sm" asChild>
-                        <span className="text-xs">Edit</span>
-                      </Button>
-                    </SubscriptionDialog>
+                  <TableCell className="table-cell">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <SubscriptionDialog mode="update" initial_data={sub}>
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                        </SubscriptionDialog>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onSelect={() => handleDelete(sub.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -102,7 +153,7 @@ async function SubscriptionsList() {
   );
 }
 
-export default async function SubscriptionsPage() {
+export default function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -119,9 +170,7 @@ export default async function SubscriptionsPage() {
         </SubscriptionDialog>
       </div>
 
-      <Suspense fallback={<TableSkeleton />}>
-        <SubscriptionsList />
-      </Suspense>
+      <SubscriptionsList />
     </div>
   );
 }

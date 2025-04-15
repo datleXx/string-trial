@@ -85,10 +85,10 @@ export const organizationToFeed = createTable(
 
     feedId: uuid("feed_id")
       .notNull()
-      .references(() => feeds.id),
+      .references(() => feeds.id, { onDelete: "cascade" }),
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
 
     accessUntil: timestamp("access_until", { withTimezone: true }).notNull(),
     dashboardUrl: varchar("dashboard_url", { length: 255 }),
@@ -119,10 +119,10 @@ export const invoices = createTable(
       .default(sql`gen_random_uuid()`),
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     organizationToFeedId: uuid("organization_to_feed_id")
       .notNull()
-      .references(() => organizationToFeed.id),
+      .references(() => organizationToFeed.id, { onDelete: "cascade" }),
     invoiceNumber: varchar("invoice_number", { length: 255 }).notNull(),
     amount: decimal("amount").notNull(),
     status: varchar("status", { length: 50 }).default("pending").notNull(),

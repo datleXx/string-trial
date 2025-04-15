@@ -129,10 +129,18 @@ export function BillingHistoryTable({
 
   if (billing_history.length === 0) {
     return (
-      <NoData
-        title="No billing history"
-        message="There are no invoices to display at this time."
-      />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Billing History</CardTitle>
+          {!view_only && <InvoiceFormDialog organizations={organizations} />}
+        </CardHeader>
+        <CardContent>
+          <NoData
+            title="No billing history"
+            message="There are no invoices to display at this time."
+          />
+        </CardContent>
+      </Card>
     );
   }
 
