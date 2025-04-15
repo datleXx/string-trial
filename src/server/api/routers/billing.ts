@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql, desc, inArray } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   organizationToFeed,
@@ -44,7 +44,7 @@ export const billingRouter = createTRPCRouter({
         where: and(
           eq(organizationToFeed.organizationId, input.organizationId),
           input.subscriptionIds
-            ? sql`${organizationToFeed.id} = ANY(${input.subscriptionIds})`
+            ? inArray(organizationToFeed.id, input.subscriptionIds)
             : undefined,
         ),
         with: {
