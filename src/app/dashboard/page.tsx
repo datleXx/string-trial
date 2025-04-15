@@ -25,9 +25,8 @@ import {
   Pie,
   Cell,
   Legend,
-  BarChart,
-  Bar,
 } from "recharts";
+import dayjs from "dayjs";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -50,7 +49,7 @@ function MetricCard({
         </CardTitle>
         <p className="mt-2 text-3xl font-semibold">{value}</p>
         <p className="text-muted-foreground mt-2 text-sm">{description}</p>
-        {trend && (
+        {typeof trend !== "undefined" && trend !== 0 && (
           <p
             className={`mt-2 text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}
           >
@@ -63,51 +62,61 @@ function MetricCard({
 }
 
 function DashboardMetrics() {
-  const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery();
-  const { data: subscriptions } = api.subscription.getAll.useQuery();
+  const { data: metrics, isLoading } = api.billing.getBillingMetrics.useQuery({
+    months: 12,
+  });
 
-  if (isLoading || !metrics || !subscriptions) {
+  if (isLoading || !metrics) {
     return <DashboardMetricsLoading />;
   }
 
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(metrics.total_mrr));
+  }).format(metrics.current.total_mrr);
 
   const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(metrics.total_arr));
+  }).format(metrics.current.total_arr);
 
   const formatted_avg = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(metrics.average_subscription_value));
+  }).format(metrics.current.average_invoice_value);
 
-  const subscriptions_by_frequency = subscriptions.reduce(
-    (acc, sub) => {
-      const freq = sub.billingFrequency ?? "monthly";
-      acc[freq] = (acc[freq] ?? 0) + Number(sub.billingAmount);
-      return acc;
+  // Prepare data for billing frequency chart
+  const billing_frequency_data = [
+    {
+      name: "Monthly",
+      value: metrics.current.monthly_subscriptions,
     },
-    {} as Record<string, number>,
-  );
+    {
+      name: "Yearly",
+      value: metrics.current.yearly_subscriptions,
+    },
+  ];
 
-  const pie_data = Object.entries(subscriptions_by_frequency).map(
-    ([name, value]) => ({
-      name,
-      value,
-    }),
-  );
+  // Prepare data for collection metrics
+  const collection_data = [
+    {
+      name: "Paid",
+      value: metrics.current.total_paid,
+    },
+    {
+      name: "Pending",
+      value: metrics.current.total_pending,
+    },
+  ];
 
-  const revenue_data = Array.from({ length: 12 }, (_, i) => ({
-    month: new Date(2024, i).toLocaleString("default", { month: "short" }),
-    mrr: (Number(metrics.total_mrr) * (0.85 + Math.random() * 0.3)).toFixed(2),
-    arr: (Number(metrics.total_arr) * (0.85 + Math.random() * 0.3)).toFixed(2),
+  // Prepare data for historical revenue chart
+  const revenue_history = metrics.historical.map((month) => ({
+    name: dayjs(month.month).format("MMM YY"),
+    month: month.month,
+    MRR: month.mrr,
+    ARR: month.arr,
+    "Active Subscriptions": month.active_subscriptions,
+    "New Subscriptions": month.new_subscriptions,
   }));
 
   return (
@@ -117,37 +126,36 @@ function DashboardMetrics() {
           title="Monthly Recurring Revenue"
           value={formatted_mrr}
           description="Total MRR from all subscriptions"
-          trend={5.2}
         />
         <MetricCard
           title="Annual Recurring Revenue"
           value={formatted_arr}
           description="Total ARR from all subscriptions"
-          trend={7.8}
         />
         <MetricCard
           title="Total Organizations"
-          value={metrics.organization_count}
+          value={metrics.current.organization_count}
           description="Number of active organizations"
-          trend={3.1}
         />
         <MetricCard
           title="Average Subscription Value"
           value={formatted_avg}
           description="Average value per subscription"
-          trend={-1.2}
         />
       </div>
 
-      {/* Revenue Trends Chart */}
+      {/* New Historical Revenue Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Trends</CardTitle>
+          <CardTitle>Revenue & Subscription Growth</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenue_data}>
+              <AreaChart
+                data={revenue_history}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0088FE" stopOpacity={0.8} />
@@ -157,27 +165,87 @@ function DashboardMetrics() {
                     <stop offset="5%" stopColor="#00C49F" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
                   </linearGradient>
+                  <linearGradient
+                    id="activeSubsGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#FF8042" stopOpacity={0} />
+                    <stop offset="95%" stopColor="#FF8042" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient
+                    id="newSubsGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#FFBB28" stopOpacity={0} />
+                    <stop offset="95%" stopColor="#FFBB28" stopOpacity={0} />
+                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis
+                  yAxisId="left"
+                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickFormatter={(value: number) => String(Math.round(value))}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  formatter={(value: number, name: string) => {
+                    if (name === "MRR" || name === "ARR") {
+                      return [`$${value.toFixed(2)}`, name];
+                    }
+                    return [Math.round(value), name];
+                  }}
+                  labelFormatter={(label: string) => label}
+                />
                 <Legend />
                 <Area
+                  yAxisId="left"
                   type="monotone"
-                  dataKey="mrr"
+                  dataKey="MRR"
                   stroke="#0088FE"
+                  strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#mrrGradient)"
-                  name="MRR"
                 />
                 <Area
+                  yAxisId="left"
                   type="monotone"
-                  dataKey="arr"
+                  dataKey="ARR"
                   stroke="#00C49F"
+                  strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#arrGradient)"
-                  name="ARR"
+                />
+                <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Active Subscriptions"
+                  stroke="#FF8042"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#activeSubsGradient)"
+                />
+                <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="New Subscriptions"
+                  stroke="#FFBB28"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#newSubsGradient)"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -186,17 +254,17 @@ function DashboardMetrics() {
       </Card>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Subscription Distribution */}
+        {/* Billing Frequency Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Subscription Distribution</CardTitle>
+            <CardTitle>Billing Frequency Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={pie_data}
+                    data={billing_frequency_data}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -204,9 +272,11 @@ function DashboardMetrics() {
                     fill="#8884d8"
                     paddingAngle={5}
                     dataKey="value"
-                    label
+                    label={({ name, percent }) =>
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
                   >
-                    {pie_data.map((_, index) => (
+                    {billing_frequency_data.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -221,28 +291,40 @@ function DashboardMetrics() {
           </CardContent>
         </Card>
 
-        {/* Billing Frequency Comparison */}
+        {/* Collection Metrics */}
         <Card>
           <CardHeader>
-            <CardTitle>Billing Frequency Comparison</CardTitle>
+            <CardTitle>Collection Metrics</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={pie_data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8">
-                    {pie_data.map((_, index) => (
+                <PieChart>
+                  <Pie
+                    data={collection_data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, value }) =>
+                      `${name} ($${Number(value).toFixed(2)})`
+                    }
+                  >
+                    {collection_data.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
                       />
                     ))}
-                  </Bar>
-                </BarChart>
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                  />
+                  <Legend />
+                </PieChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -290,9 +372,7 @@ function RecentSubscriptions() {
           <TableBody>
             {recent_subs.map((sub) => (
               <TableRow key={sub.id}>
-                <TableCell className="font-medium">
-                  {sub.organization.name}
-                </TableCell>
+                <TableCell>{sub.organization.name}</TableCell>
                 <TableCell>{sub.feed.name}</TableCell>
                 <TableCell>${sub.billingAmount}</TableCell>
                 <TableCell>{sub.billingFrequency}</TableCell>

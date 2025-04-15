@@ -7,8 +7,11 @@ import {
   invoices,
 } from "~/server/db/schema";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 import { elevatedProcedure, adminProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+
+dayjs.extend(isBetween);
 
 // Input validation schemas
 const generateInvoiceSchema = z.object({
@@ -133,37 +136,141 @@ export const billingRouter = createTRPCRouter({
     }),
 
   // Get billing metrics for all organizations
-  getBillingMetrics: protectedProcedure.query(async () => {
-    const subscriptions = await db.query.organizationToFeed.findMany({
-      with: {
-        organization: true,
-        feed: true,
-      },
-    });
+  getBillingMetrics: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().optional().default(12), // Number of months of history to return
+      }),
+    )
+    .query(async ({ input }) => {
+      // Fetch both invoices and active subscriptions with their timestamps
+      const invoices_data = await db.query.invoices.findMany({
+        with: {
+          organizationToFeed: true,
+        },
+        orderBy: [desc(invoices.createdAt)],
+      });
+      const subscriptions = await db.query.organizationToFeed.findMany({
+        with: {
+          feed: true,
+        },
+      });
 
-    // Calculate metrics
-    const metrics = {
-      total_mrr: subscriptions
-        .filter((sub) => sub.billingFrequency === "monthly")
-        .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-      total_arr: subscriptions
-        .filter((sub) => sub.billingFrequency === "yearly")
-        .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
-      organization_count: new Set(
-        subscriptions.map((sub) => sub.organizationId),
-      ).size,
-      subscription_count: subscriptions.length,
-      average_subscription_value:
-        subscriptions.length > 0
-          ? subscriptions.reduce(
-              (sum, sub) => sum + Number(sub.billingAmount),
-              0,
-            ) / subscriptions.length
-          : 0,
-    };
+      // Calculate monthly metrics for the past N months
+      const monthly_metrics = [];
+      const today = new Date();
+      for (let i = 0; i < (input.months ?? 12); i++) {
+        const target_date = dayjs(today).subtract(i, "month");
+        const start_of_month = target_date.startOf("month").toDate();
+        const end_of_month = target_date.endOf("month").toDate();
 
-    return metrics;
-  }),
+        // Filter invoices and subscriptions for this month
+        const month_invoices = invoices_data.filter((inv) =>
+          dayjs(inv.createdAt).isBetween(
+            start_of_month,
+            end_of_month,
+            null,
+            "[]",
+          ),
+        );
+
+        const month_subscriptions = subscriptions.filter(
+          (sub) =>
+            (!sub.accessUntil ||
+              dayjs(sub.accessUntil).isAfter(start_of_month)) &&
+            dayjs(sub.createdAt).isBefore(end_of_month),
+        );
+
+        const month_metrics = {
+          month: dayjs(start_of_month).format("YYYY-MM"),
+          mrr: month_subscriptions
+            .filter((sub) => sub.billingFrequency === "monthly")
+            .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+          arr: month_subscriptions
+            .filter((sub) => sub.billingFrequency === "yearly")
+            .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+          total_invoiced: month_invoices.reduce(
+            (sum, inv) => sum + Number(inv.amount),
+            0,
+          ),
+          active_subscriptions: month_subscriptions.length,
+          new_subscriptions: subscriptions.filter((sub) =>
+            dayjs(sub.createdAt).isBetween(
+              start_of_month,
+              end_of_month,
+              null,
+              "[]",
+            ),
+          ).length,
+        };
+
+        monthly_metrics.push(month_metrics);
+      }
+
+      // Calculate current metrics (existing code)
+      const invoice_metrics = {
+        total_invoiced: invoices_data.reduce(
+          (sum, inv) => sum + Number(inv.amount),
+          0,
+        ),
+        total_paid: invoices_data
+          .filter((inv) => inv.status === "paid")
+          .reduce((sum, inv) => sum + Number(inv.amount), 0),
+        total_pending: invoices_data
+          .filter((inv) => inv.status === "pending")
+          .reduce((sum, inv) => sum + Number(inv.amount), 0),
+        invoice_count: invoices_data.length,
+        paid_invoice_count: invoices_data.filter((inv) => inv.status === "paid")
+          .length,
+      };
+
+      const subscription_metrics = {
+        total_mrr: subscriptions
+          .filter((sub) => sub.billingFrequency === "monthly")
+          .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+        total_arr: subscriptions
+          .filter((sub) => sub.billingFrequency === "yearly")
+          .reduce((sum, sub) => sum + Number(sub.billingAmount), 0),
+        organization_count: new Set(
+          subscriptions.map((sub) => sub.organizationId),
+        ).size,
+        subscription_count: subscriptions.length,
+        monthly_subscriptions: subscriptions.filter(
+          (sub) => sub.billingFrequency === "monthly",
+        ).length,
+        yearly_subscriptions: subscriptions.filter(
+          (sub) => sub.billingFrequency === "yearly",
+        ).length,
+        average_subscription_value:
+          subscriptions.length > 0
+            ? subscriptions.reduce(
+                (sum, sub) => sum + Number(sub.billingAmount),
+                0,
+              ) / subscriptions.length
+            : 0,
+      };
+
+      const derived_metrics = {
+        average_invoice_value:
+          invoices_data.length > 0
+            ? invoice_metrics.total_invoiced / invoices_data.length
+            : 0,
+        collection_rate:
+          invoice_metrics.total_invoiced > 0
+            ? (invoice_metrics.total_paid / invoice_metrics.total_invoiced) *
+              100
+            : 0,
+      };
+
+      return {
+        current: {
+          ...invoice_metrics,
+          ...subscription_metrics,
+          ...derived_metrics,
+        },
+        historical: monthly_metrics.reverse(),
+      };
+    }),
 
   getAllBillingHistory: protectedProcedure.query(async () => {
     return db.query.invoices.findMany({
