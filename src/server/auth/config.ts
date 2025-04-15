@@ -81,14 +81,19 @@ export const authConfig = {
       // If this is a sign in or token update event
       if (user || trigger === "update") {
         // Fetch fresh user data
+        console.log("Fetching fresh user data...");
         const dbUser = await db.query.users.findFirst({
           where: eq(users.id, token.sub!),
         });
 
+        console.log("User data fetched:", dbUser);
+
         if (dbUser) {
+          console.log("Updating token role...");
           token.role = dbUser.role;
         }
       }
+      console.log("Token after callback:", token);
       return token;
     },
     // authorized({
