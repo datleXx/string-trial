@@ -4,6 +4,9 @@ import { getToken } from "next-auth/jwt";
 import { env } from "~/env";
 
 export async function middleware(request: NextRequest) {
+  console.log("Request headers:", Object.fromEntries(request.headers));
+  console.log("Cookies:", request.cookies.getAll());
+
   const token = await getToken({
     req: request,
     secret: env.AUTH_SECRET,
@@ -45,5 +48,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/billing", "/dashboard/admin/users"],
+  matcher: ["/dashboard/:path*"],
 };
