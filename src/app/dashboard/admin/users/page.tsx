@@ -46,6 +46,7 @@ export default function AdminUsersPage() {
   const updateRole = api.admin.updateUserRole.useMutation({
     onSuccess: async () => {
       toast.success("User role updated successfully");
+      void utils.admin.getUserDetails.invalidate({ userId: user?.id });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -105,7 +106,7 @@ export default function AdminUsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Last Login</TableHead>
@@ -170,10 +171,18 @@ export default function AdminUsersPage() {
                     <TableCell>
                       <Badge
                         variant={
-                          user.role === "admin" ? "default" : "secondary"
+                          user.role === "admin"
+                            ? "default"
+                            : user.role === "viewer"
+                              ? "secondary"
+                              : "default"
                         }
                       >
-                        {user.role === "admin" ? "Admin" : "User"}
+                        {user.role === "admin"
+                          ? "Admin"
+                          : user.role === "viewer"
+                            ? "Viewer"
+                            : "User"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

@@ -51,7 +51,7 @@ export default async function OrganizationsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Organization</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead className="hidden md:table-cell">
                       Billing Email
                     </TableHead>
