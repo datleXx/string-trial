@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { NoData } from "~/components/ui/no-data";
-import { TableSkeleton } from "~/components/ui/skeleton";
 import { SubscriptionDialog } from "./CreateSubscriptionDialog";
 import {
   DropdownMenu,
@@ -23,6 +22,9 @@ import {
 import { MoreVertical } from "lucide-react";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import { Skeleton } from "~/components/ui/skeleton";
+import { PaginationControls } from "~/app/_components/PaginationControls";
 
 function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
   const now = new Date();
@@ -37,29 +39,24 @@ function SubscriptionStatus({ accessUntil }: { accessUntil: Date }) {
 
 function SubscriptionsList() {
   const utils = api.useUtils();
-  const { data: subscriptions, isLoading } = api.subscription.getAll.useQuery();
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const { data: paginated_data, isLoading } =
+    api.subscription.getPaginated.useQuery({
+      page,
+      page_size: PAGE_SIZE,
+    });
+
   const deleteMutation = api.subscription.delete.useMutation({
     onSuccess: () => {
       toast.success("Subscription deleted successfully");
-      void utils.subscription.getAll.invalidate();
+      void utils.subscription.getPaginated.invalidate();
     },
     onError: () => {
       toast.error("Failed to delete subscription");
     },
   });
-
-  if (isLoading) {
-    return <TableSkeleton />;
-  }
-
-  if (!subscriptions || subscriptions.length === 0) {
-    return (
-      <NoData
-        title="No subscriptions"
-        message="There are no items to display at this time."
-      />
-    );
-  }
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this subscription?")) {
@@ -74,79 +71,133 @@ function SubscriptionsList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Organization</TableHead>
-                <TableHead className="hidden md:table-cell">Feed</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
-                <TableHead>Billing</TableHead>
-                <TableHead className="hidden lg:table-cell">
+                <TableHead className="w-[200px]">Organization</TableHead>
+                <TableHead className="hidden w-[180px] md:table-cell">
+                  Feed
+                </TableHead>
+                <TableHead className="hidden w-[100px] sm:table-cell">
+                  Status
+                </TableHead>
+                <TableHead className="w-[120px]">Billing</TableHead>
+                <TableHead className="hidden w-[120px] lg:table-cell">
                   Access Until
                 </TableHead>
-                <TableHead className="table-cell">Actions</TableHead>
+                <TableHead className="w-[80px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {subscriptions.map((sub) => (
-                <TableRow key={sub.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      {sub.organization.name}
-                      <div className="text-muted-foreground text-sm font-light md:hidden">
-                        {sub.feed.name}
+              {isLoading ? (
+                Array.from({ length: 10 }).map((_, index) => (
+                  <TableRow key={`loading-${index}`}>
+                    <TableCell className="w-[200px]">
+                      <Skeleton className="h-4 w-[140px]" />
+                      <div className="mt-2 md:hidden">
+                        <Skeleton className="h-3 w-[100px]" />
                       </div>
-                      <div className="text-muted-foreground text-sm font-light sm:hidden">
-                        <SubscriptionStatus
-                          accessUntil={new Date(sub.accessUntil)}
-                        />
+                      <div className="mt-2 sm:hidden">
+                        <Skeleton className="h-5 w-[80px]" />
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden font-light md:table-cell">
-                    {sub.feed.name}
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <SubscriptionStatus
-                      accessUntil={new Date(sub.accessUntil)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-light">
-                    ${sub.billingAmount}/{sub.billingFrequency}
-                  </TableCell>
-                  <TableCell className="hidden font-light lg:table-cell">
-                    {new Date(sub.accessUntil).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="table-cell">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <SubscriptionDialog mode="update" initial_data={sub}>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
+                    </TableCell>
+                    <TableCell className="hidden w-[180px] md:table-cell">
+                      <Skeleton className="h-4 w-[120px]" />
+                    </TableCell>
+                    <TableCell className="hidden w-[100px] sm:table-cell">
+                      <Skeleton className="h-5 w-[80px]" />
+                    </TableCell>
+                    <TableCell className="w-[120px]">
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
+                    <TableCell className="hidden w-[120px] lg:table-cell">
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
+                    <TableCell className="w-[80px]">
+                      <Skeleton className="h-8 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : !paginated_data || paginated_data?.items.length === 0 ? (
+                <NoData
+                  title="No subscriptions"
+                  message="There are no items to display at this time."
+                />
+              ) : (
+                paginated_data?.items.map((sub) => (
+                  <TableRow key={sub.id}>
+                    <TableCell className="w-[200px]">
+                      <div>
+                        <div className="truncate font-medium">
+                          {sub.organization.name}
+                        </div>
+                        <div className="text-muted-foreground truncate text-sm font-light md:hidden">
+                          {sub.feed.name}
+                        </div>
+                        <div className="text-muted-foreground text-sm font-light sm:hidden">
+                          <SubscriptionStatus
+                            accessUntil={new Date(sub.accessUntil)}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden w-[180px] font-light md:table-cell">
+                      <div className="truncate">{sub.feed.name}</div>
+                    </TableCell>
+                    <TableCell className="hidden w-[100px] sm:table-cell">
+                      <SubscriptionStatus
+                        accessUntil={new Date(sub.accessUntil)}
+                      />
+                    </TableCell>
+                    <TableCell className="w-[120px] font-light">
+                      <div className="truncate">
+                        ${sub.billingAmount}/{sub.billingFrequency}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden w-[120px] font-light lg:table-cell">
+                      <div className="truncate">
+                        {new Date(sub.accessUntil).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="w-[80px]">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
                           >
-                            Edit
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <SubscriptionDialog mode="update" initial_data={sub}>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                          </SubscriptionDialog>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onSelect={() => handleDelete(sub.id)}
+                          >
+                            Delete
                           </DropdownMenuItem>
-                        </SubscriptionDialog>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onSelect={() => handleDelete(sub.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination Controls */}
+        <PaginationControls
+          page={page}
+          setPage={setPage}
+          total_pages={paginated_data?.metadata.page_count ?? 1}
+          loading={isLoading}
+        />
       </CardContent>
     </Card>
   );
