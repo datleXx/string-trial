@@ -72,7 +72,7 @@ export function ViewOrganizationDialog({
         {isLoading ? (
           <TableSkeleton />
         ) : organization ? (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-5">
             {/* Organization Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
@@ -83,7 +83,7 @@ export function ViewOrganizationDialog({
                   <h2 className="text-2xl font-semibold">
                     {organization.name}
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground font-light">
                     {organization.billingEmail}
                   </p>
                 </div>

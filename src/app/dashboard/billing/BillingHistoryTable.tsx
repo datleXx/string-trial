@@ -145,95 +145,93 @@ export function BillingHistoryTable({
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Billing History</CardTitle>
-          {!view_only && <InvoiceFormDialog organizations={organizations} />}
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Feed</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Paid At</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {billing_history.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">
-                    {invoice.invoiceNumber}
-                  </TableCell>
-                  <TableCell className="font-light">
-                    {formatDate(invoice.createdAt)}
-                  </TableCell>
-                  <TableCell className="font-light">
-                    {formatDate(invoice.dueDate)}
-                  </TableCell>
-                  <TableCell className="font-light">
-                    {invoice.organizationToFeed.feed.name}
-                  </TableCell>
-                  <TableCell className="text-right font-light">
-                    {formatCurrency(invoice.amount)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className="capitalize"
-                      variant={getStatusColor(invoice.status)}
-                    >
-                      {invoice.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-light">
-                    {formatDate(invoice.paidAt)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleMarkAsPaid(invoice.id)}
-                          disabled={view_only}
-                        >
-                          <Check className="mr-1 h-3 w-3 text-green-600" />
-                          <span className="text-sm text-green-600">
-                            Mark as Paid
-                          </span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(invoice.id)}
-                          disabled={view_only}
-                        >
-                          <Trash2 className="mr-1 h-3 w-3 text-red-600" />
-                          <span className="text-sm text-red-600">Delete</span>
-                        </DropdownMenuItem>
+    <Card className="mt-1">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Billing History</CardTitle>
+        {!view_only && <InvoiceFormDialog organizations={organizations} />}
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Invoice #</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead>Feed</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Paid At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {billing_history.map((invoice) => (
+              <TableRow key={invoice.id}>
+                <TableCell className="font-medium">
+                  {invoice.invoiceNumber}
+                </TableCell>
+                <TableCell className="font-light">
+                  {formatDate(invoice.createdAt)}
+                </TableCell>
+                <TableCell className="font-light">
+                  {formatDate(invoice.dueDate)}
+                </TableCell>
+                <TableCell className="font-light">
+                  {invoice.organizationToFeed.feed.name}
+                </TableCell>
+                <TableCell className="text-right font-light">
+                  {formatCurrency(invoice.amount)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className="capitalize"
+                    variant={getStatusColor(invoice.status)}
+                  >
+                    {invoice.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-light">
+                  {formatDate(invoice.paidAt)}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleMarkAsPaid(invoice.id)}
+                        disabled={view_only}
+                      >
+                        <Check className="mr-1 h-3 w-3 text-green-600" />
+                        <span className="text-sm text-green-600">
+                          Mark as Paid
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(invoice.id)}
+                        disabled={view_only}
+                      >
+                        <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                        <span className="text-sm text-red-600">Delete</span>
+                      </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                          onClick={() => handleDownloadPDF(invoice.id)}
-                          disabled={generatePDFMutation.isPending}
-                        >
-                          <Download className="mr-1 h-3 w-3" />
-                          <span className="text-sm">Download PDF</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </>
+                      <DropdownMenuItem
+                        onClick={() => handleDownloadPDF(invoice.id)}
+                        disabled={generatePDFMutation.isPending}
+                      >
+                        <Download className="mr-1 h-3 w-3" />
+                        <span className="text-sm">Download PDF</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

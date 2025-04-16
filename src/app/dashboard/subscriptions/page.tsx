@@ -154,7 +154,7 @@ function SubscriptionsList() {
 
 export default function SubscriptionsPage() {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">

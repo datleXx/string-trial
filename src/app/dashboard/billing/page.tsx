@@ -31,7 +31,7 @@ function BillingMetrics() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <Card className="bg-white shadow-sm transition-all hover:shadow-md">
-        <CardContent className="p-6">
+        <CardContent>
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Monthly Recurring Revenue
           </CardTitle>
@@ -42,7 +42,7 @@ function BillingMetrics() {
         </CardContent>
       </Card>
       <Card className="bg-white shadow-sm transition-all hover:shadow-md">
-        <CardContent className="p-6">
+        <CardContent>
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Annual Recurring Revenue
           </CardTitle>
@@ -53,7 +53,7 @@ function BillingMetrics() {
         </CardContent>
       </Card>
       <Card className="bg-white shadow-sm transition-all hover:shadow-md">
-        <CardContent className="p-6">
+        <CardContent>
           <CardTitle className="text-muted-foreground text-sm font-medium">
             Total Organizations
           </CardTitle>
@@ -96,7 +96,7 @@ function BillingHistoryLoading() {
 
 export default function BillingPage() {
   return (
-    <div className="container mx-auto space-y-6">
+    <div className="flex flex-col gap-5">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Billing Dashboard</h1>
         <p className="text-muted-foreground mt-2 font-light">
