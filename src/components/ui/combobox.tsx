@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 export function Combobox({
   options,

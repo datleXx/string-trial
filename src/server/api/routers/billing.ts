@@ -13,6 +13,7 @@ import { db } from "~/server/db";
 import { generateInvoicePDF } from "~/server/services/pdf";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
+import { sendInvoiceEmail } from "~/server/services/email";
 
 dayjs.extend(isBetween);
 
@@ -22,6 +23,8 @@ const generateInvoiceSchema = z.object({
   subscriptionIds: z.array(z.string()).optional(),
   amount: z.number().positive(),
   dueDate: z.string().datetime(),
+  sendEmail: z.boolean().optional(),
+  emailOverride: z.string().email().optional(),
 });
 
 const updateInvoiceStatusSchema = z.object({
@@ -82,6 +85,43 @@ export const billingRouter = createTRPCRouter({
           invoiceNumber: invoice_number,
         })
         .returning();
+
+      if (input.sendEmail && invoice) {
+        try {
+          const invoice_data = {
+            invoice_number: invoice_number,
+            organization: {
+              id: organization.id,
+              name: organization.name,
+              billing_email: organization.billingEmail,
+            },
+            billing_period: {
+              start_date: invoice.createdAt.toISOString(),
+              end_date: invoice.dueDate.toISOString(),
+            },
+            line_items: line_items.map((item) => ({
+              feed_name: item.feedName,
+              amount: item.amount.toString(),
+              period: item.period,
+            })),
+            total_amount: total_amount,
+            generated_at: invoice.createdAt.toISOString(),
+            due_date: invoice.dueDate.toISOString(),
+          };
+
+          const pdf_buffer = await generateInvoicePDF(invoice_data);
+
+          await sendInvoiceEmail({
+            to: input.emailOverride ?? organization.billingEmail,
+            invoice_number: invoice_number,
+            organization_name: organization.name,
+            amount: total_amount,
+            pdf_buffer: pdf_buffer,
+          });
+        } catch (error) {
+          console.error(JSON.stringify(error, null, 2));
+        }
+      }
 
       return invoice;
     }),

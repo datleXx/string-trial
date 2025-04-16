@@ -263,8 +263,8 @@ export function BillingHistoryTable() {
                             disabled={view_only}
                             className="text-destructive"
                           >
-                            <Trash2 className="mr-1 h-3 w-3" />
-                            <span className="text-sm">Delete</span>
+                            <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                            <span className="text-sm text-red-600">Delete</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDownloadPDF(invoice.id)}

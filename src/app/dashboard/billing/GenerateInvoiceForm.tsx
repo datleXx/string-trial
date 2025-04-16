@@ -21,6 +21,9 @@ export function GenerateInvoiceForm() {
     [],
   );
   const [amount, setAmount] = useState<string>("");
+  const [send_email, setSendEmail] = useState<boolean>(false);
+  const [manual_email, setManualEmail] = useState<string>("");
+  const [change_email, setChangeEmail] = useState<boolean>(false);
   const [due_date, setDueDate] = useState<string>(
     dayjs().add(30, "day").format("YYYY-MM-DD"),
   );
@@ -54,6 +57,9 @@ export function GenerateInvoiceForm() {
       setSelectedSubscriptions([]);
       setAmount("");
       setDueDate(dayjs().add(30, "day").format("YYYY-MM-DD"));
+      setSendEmail(false);
+      setManualEmail("");
+      setChangeEmail(false);
       // Refresh billing history
       void utils.billing.getAllBillingHistory.invalidate();
     },
@@ -79,9 +85,14 @@ export function GenerateInvoiceForm() {
       return;
     }
 
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
+    const numeric_amount = parseFloat(amount);
+    if (isNaN(numeric_amount) || numeric_amount <= 0) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (manual_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(manual_email)) {
+      toast.error("Please enter a valid email address");
       return;
     }
 
@@ -89,8 +100,10 @@ export function GenerateInvoiceForm() {
       organizationId: selected_org,
       subscriptionIds:
         selected_subscriptions.length > 0 ? selected_subscriptions : undefined,
-      amount: numericAmount,
+      amount: numeric_amount,
       dueDate: dayjs(due_date).toISOString(),
+      sendEmail: send_email,
+      emailOverride: manual_email,
     });
   };
 
@@ -185,15 +198,54 @@ export function GenerateInvoiceForm() {
         </div>
       </div>
 
+      {(selected_org || manual_email) && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            checked={send_email}
+            onCheckedChange={(checked) => setSendEmail(checked as boolean)}
+          />
+          <div className="flex flex-col space-y-2">
+            <Label className="text-sm font-light">
+              Send invoice to{" "}
+              {!change_email ? (
+                <span className="font-medium">
+                  {manual_email
+                    ? manual_email
+                    : organizations.find((org) => org.id === selected_org)
+                        ?.name}
+                </span>
+              ) : (
+                <Input
+                  type="email"
+                  onBlur={() => {
+                    setChangeEmail(false);
+                  }}
+                  value={manual_email}
+                  onChange={(e) => setManualEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  className="ml-1 inline-block w-fit"
+                />
+              )}
+              <span
+                className="cursor-pointer text-xs font-light text-gray-500 underline"
+                onClick={() => {
+                  setChangeEmail(!change_email);
+                }}
+              >
+                {change_email ? "Cancel" : "Change?"}
+              </span>
+            </Label>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end">
         <Button
           type="submit"
           disabled={generateInvoiceMutation.isPending}
           className="w-full sm:w-auto"
         >
-          {generateInvoiceMutation.isPending
-            ? "Generating..."
-            : "Generate Invoice"}
+          {generateInvoiceMutation.isPending ? "Generating..." : "Generate"}
         </Button>
       </div>
     </form>

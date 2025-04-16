@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq, ilike, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizations } from "~/server/db/schema";
