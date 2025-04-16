@@ -26,11 +26,11 @@ export async function sendInvoiceEmail({
     to,
     from: process.env.EMAIL_FROM ?? "billing@yourcompany.com",
     subject: `Invoice ${invoice_number} for ${organization_name}`,
-    text: `Please find attached invoice ${invoice_number} for your subscription to ${feed_name}.`,
+    text: `Please find attached invoice ${invoice_number} for your subscription ${feed_name ? `(${feed_name})` : ""}`,
     html: `
       <h2>Invoice ${invoice_number}</h2>
       <p>Dear ${organization_name},</p>
-      <p>Please find attached your invoice for ${feed_name} for $${amount.toFixed(2)}.</p>
+      <p>Please find attached your invoice for ${feed_name ? `(${feed_name})` : ""} for $${amount.toFixed(2)}.</p>
       <p>Thank you for your business!</p>
     `,
     attachments: [
