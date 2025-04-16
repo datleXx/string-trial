@@ -12,6 +12,7 @@ import { elevatedProcedure, adminProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { generateInvoicePDF } from "~/server/services/pdf";
 import { TRPCError } from "@trpc/server";
+import { sql } from "drizzle-orm";
 
 dayjs.extend(isBetween);
 
@@ -149,6 +150,46 @@ export const billingRouter = createTRPCRouter({
       },
     });
   }),
+
+  getPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        page_size: z.number().min(1).max(100).default(10),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { page, page_size } = input;
+
+      const [items, total_count] = await Promise.all([
+        db.query.invoices.findMany({
+          with: {
+            organizationToFeed: {
+              with: {
+                feed: true,
+              },
+            },
+          },
+          limit: page_size,
+          offset: (page - 1) * page_size,
+          orderBy: [desc(invoices.createdAt)],
+        }),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(invoices)
+          .then((res) => Number(res[0]?.count ?? 0)),
+      ]);
+
+      return {
+        items,
+        metadata: {
+          total_count,
+          page_count: Math.ceil(total_count / page_size),
+          current_page: page,
+          page_size,
+        },
+      };
+    }),
 
   // Get billing history for an organization
   getBillingHistory: protectedProcedure

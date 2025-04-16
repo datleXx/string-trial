@@ -7,19 +7,14 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
-import { type RouterOutputs } from "~/trpc/shared";
-
-type Organization = RouterOutputs["organization"]["getAll"][number];
+import { api } from "~/trpc/react";
 
 interface InvoiceFormDialogProps {
-  organizations: Organization[];
   trigger?: React.ReactNode;
 }
 
-export function InvoiceFormDialog({
-  organizations,
-  trigger,
-}: InvoiceFormDialogProps) {
+export function InvoiceFormDialog({ trigger }: InvoiceFormDialogProps) {
+  const { data: organizations = [] } = api.organization.getAll.useQuery();
   return (
     <Dialog>
       <DialogTrigger asChild>

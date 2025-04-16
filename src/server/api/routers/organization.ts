@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizations } from "~/server/db/schema";
@@ -17,6 +17,39 @@ export const organizationRouter = createTRPCRouter({
       orderBy: [desc(organizations.name)],
     });
   }),
+
+  getPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        page_size: z.number().min(1).max(100).default(10),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { page, page_size } = input;
+
+      const [items, total_count] = await Promise.all([
+        db.query.organizations.findMany({
+          limit: page_size,
+          offset: (page - 1) * page_size,
+          orderBy: [desc(organizations.name)],
+        }),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(organizations)
+          .then((res) => Number(res[0]?.count ?? 0)),
+      ]);
+
+      return {
+        items,
+        metadata: {
+          total_count,
+          page_count: Math.ceil(total_count / page_size),
+          current_page: page,
+          page_size,
+        },
+      };
+    }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))

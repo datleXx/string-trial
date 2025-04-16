@@ -3,7 +3,7 @@
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 import { api } from "~/trpc/react";
 import { BillingHistoryTable } from "./BillingHistoryTable";
-import { MetricCardSkeleton, TableSkeleton } from "~/components/ui/skeleton";
+import { MetricCardSkeleton } from "~/components/ui/skeleton";
 
 function BillingMetrics() {
   const { data: metrics, isLoading } = api.metrics.getBillingMetrics.useQuery({
@@ -69,17 +69,6 @@ function BillingMetrics() {
   );
 }
 
-function BillingHistorySection() {
-  const { data: billing_history, isLoading } =
-    api.billing.getAllBillingHistory.useQuery();
-
-  if (isLoading || !billing_history) {
-    return <BillingHistoryLoading />;
-  }
-
-  return <BillingHistoryTable billing_history={billing_history} />;
-}
-
 function BillingMetricsLoading() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -88,10 +77,6 @@ function BillingMetricsLoading() {
       <MetricCardSkeleton />
     </div>
   );
-}
-
-function BillingHistoryLoading() {
-  return <TableSkeleton />;
 }
 
 export default function BillingPage() {
@@ -107,7 +92,7 @@ export default function BillingPage() {
       <BillingMetrics />
 
       <div>
-        <BillingHistorySection />
+        <BillingHistoryTable />
       </div>
     </div>
   );

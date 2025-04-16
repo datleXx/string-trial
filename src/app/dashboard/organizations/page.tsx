@@ -23,15 +23,23 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import { PaginationControls } from "~/app/_components/PaginationControls";
 
 export default function OrganizationsPage() {
-  const { data: organizations, isLoading } = api.organization.getAll.useQuery();
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const { data, isLoading } = api.organization.getPaginated.useQuery({
+    page,
+    page_size: pageSize,
+  });
   const utils = api.useUtils();
 
   const deleteMutation = api.organization.delete.useMutation({
     onSuccess: () => {
       toast.success("Organization deleted successfully");
-      void utils.organization.getAll.invalidate();
+      void utils.organization.getPaginated.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete organization");
@@ -70,101 +78,110 @@ export default function OrganizationsPage() {
         <CardContent>
           {isLoading ? (
             <TableSkeleton />
-          ) : organizations?.length === 0 ? (
+          ) : data?.items.length === 0 ? (
             <NoData
               title="No organizations found"
               message="You can create a new organization by clicking the button above."
             />
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      Billing Email
-                    </TableHead>
-                    <TableHead className="hidden sm:table-cell">
-                      Status
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      Created
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      Last Updated
-                    </TableHead>
-                    <TableHead className="table-cell">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {organizations?.map((org) => (
-                    <TableRow key={org.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
-                            {org.name?.[0]?.toUpperCase() ?? "O"}
-                          </div>
-                          <div>
-                            <div className="font-medium">{org.name}</div>
-                            <div className="text-muted-foreground text-sm font-light md:hidden">
-                              {org.billingEmail}
-                            </div>
-                            <div className="text-muted-foreground text-xs font-light">
-                              ID: {org.id}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden font-light md:table-cell">
-                        {org.billingEmail}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Badge
-                          className="capitalize"
-                          variant={
-                            org.status === "active" ? "default" : "secondary"
-                          }
-                        >
-                          {org.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden font-light lg:table-cell">
-                        {org.createdAt.toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="hidden font-light lg:table-cell">
-                        {org.updatedAt?.toLocaleDateString() ?? "Never"}
-                      </TableCell>
-                      <TableCell className="table-cell">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <ViewOrganizationDialog organizationId={org.id}>
-                              <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                              >
-                                <Eye className="mr-1 h-3 w-3" />
-                                <span className="text-sm">View</span>
-                              </DropdownMenuItem>
-                            </ViewOrganizationDialog>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(org.id)}
-                            >
-                              <Trash2 className="mr-1 h-3 w-3 text-red-600" />
-                              <span className="text-sm text-red-600">
-                                Delete
-                              </span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Billing Email
+                      </TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Status
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Created
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Last Updated
+                      </TableHead>
+                      <TableHead className="table-cell">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.items.map((org) => (
+                      <TableRow key={org.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
+                              {org.name?.[0]?.toUpperCase() ?? "O"}
+                            </div>
+                            <div>
+                              <div className="font-medium">{org.name}</div>
+                              <div className="text-muted-foreground text-sm font-light md:hidden">
+                                {org.billingEmail}
+                              </div>
+                              <div className="text-muted-foreground text-xs font-light">
+                                ID: {org.id}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden font-light md:table-cell">
+                          {org.billingEmail}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Badge
+                            className="capitalize"
+                            variant={
+                              org.status === "active" ? "default" : "secondary"
+                            }
+                          >
+                            {org.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden font-light lg:table-cell">
+                          {org.createdAt.toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="hidden font-light lg:table-cell">
+                          {org.updatedAt?.toLocaleDateString() ?? "Never"}
+                        </TableCell>
+                        <TableCell className="table-cell">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <ViewOrganizationDialog organizationId={org.id}>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  <Eye className="mr-1 h-3 w-3" />
+                                  <span className="text-sm">View</span>
+                                </DropdownMenuItem>
+                              </ViewOrganizationDialog>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(org.id)}
+                              >
+                                <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                                <span className="text-sm text-red-600">
+                                  Delete
+                                </span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <PaginationControls
+                page={page}
+                total_pages={data?.metadata.page_count ?? 1}
+                setPage={setPage}
+                loading={isLoading}
+              />
             </div>
           )}
         </CardContent>
