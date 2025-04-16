@@ -74,7 +74,7 @@ export function DataTable<TData>({
                   <TableHead
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className={`px-6 py-4 text-sm font-semibold text-gray-900 ${
+                    className={`px-3 py-2 text-sm font-semibold text-gray-900 ${
                       header.column.getCanSort()
                         ? "cursor-pointer select-none hover:bg-gray-100"
                         : ""
@@ -120,7 +120,7 @@ export function DataTable<TData>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="px-6 py-4 text-sm text-gray-700"
+                      className="px-3 py-2 text-sm text-gray-700"
                       style={{ maxWidth: cell.column.columnDef.size }}
                     >
                       {flexRender(

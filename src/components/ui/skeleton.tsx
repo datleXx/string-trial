@@ -77,7 +77,7 @@ export function TableRowSkeletonTanStack({
             <TableCell
               key={`skeleton-cell-${cellIndex}`}
               style={{ maxWidth: column.size }}
-              className="h-[65px] px-6 py-4 text-sm text-gray-700"
+              className="h-[49px] px-3 py-2 text-sm text-gray-700"
             >
               <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
             </TableCell>
