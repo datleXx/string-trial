@@ -85,7 +85,7 @@ export function AdvancedMetrics() {
   }));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* User Cohort Analysis */}
       <Card>
         <CardHeader>
