@@ -69,14 +69,17 @@ export function TableRowSkeletonTanStack({
   return (
     <TableBody>
       {Array.from({ length: 10 }).map((_, index) => (
-        <TableRow key={`skeleton-${index}`}>
+        <TableRow
+          key={`skeleton-${index}`}
+          className="border-b transition-colors hover:bg-gray-50/50"
+        >
           {columns.map((column, cellIndex) => (
             <TableCell
               key={`skeleton-cell-${cellIndex}`}
               style={{ maxWidth: column.size }}
-              className="h-12 text-center"
+              className="h-[65px] px-6 py-4 text-sm text-gray-700"
             >
-              <div className="h-4 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
             </TableCell>
           ))}
         </TableRow>
@@ -84,6 +87,7 @@ export function TableRowSkeletonTanStack({
     </TableBody>
   );
 }
+
 export function MetricCardSkeleton() {
   return (
     <div className="rounded-xl border bg-white p-6">

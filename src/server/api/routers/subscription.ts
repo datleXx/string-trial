@@ -202,6 +202,7 @@ export const subscriptionRouter = createTRPCRouter({
       const organization_filter = filter_state.find(
         (f) => f.id === "organization_name",
       )?.value;
+      const feed_filter = filter_state.find((f) => f.id === "feed_name")?.value;
       if (status_filter === "active") {
         where_clause = sql`${organizationToFeed.accessUntil} > CURRENT_TIMESTAMP`;
       } else if (status_filter === "expired") {
@@ -215,6 +216,12 @@ export const subscriptionRouter = createTRPCRouter({
         );
       }
 
+      if (feed_filter) {
+        where_clause = and(
+          where_clause,
+          eq(organizationToFeed.feedId, feed_filter),
+        );
+      }
       const [items, total_count] = await Promise.all([
         db.query.organizationToFeed.findMany({
           with: {
@@ -230,6 +237,7 @@ export const subscriptionRouter = createTRPCRouter({
         db
           .select({ count: sql<number>`count(*)` })
           .from(organizationToFeed)
+          .where(where_clause)
           .then((res) => Number(res[0]?.count ?? 0)),
       ]);
 

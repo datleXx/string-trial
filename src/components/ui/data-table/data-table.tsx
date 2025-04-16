@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   useReactTable,
   type SortingState,
- 
 } from "@tanstack/react-table";
 import {
   Table,
@@ -22,6 +21,7 @@ import { type DataTableProps } from "./types";
 import { PaginationControls } from "~/app/_components/PaginationControls";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { TableRowSkeletonTanStack } from "../skeleton";
+import { Card } from "../card";
 
 export function DataTable<TData>({
   columns,
@@ -64,20 +64,21 @@ export function DataTable<TData>({
         onFilterChange={onFilterChange}
       />
 
-      <Table className="!rounded-md border bg-white p-3">
+    <Card className="p-2">
+      <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="border-b bg-gray-50/50">
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className={
+                    className={`px-6 py-4 text-sm font-semibold text-gray-900 ${
                       header.column.getCanSort()
-                        ? "cursor-pointer select-none"
+                        ? "cursor-pointer select-none hover:bg-gray-100"
                         : ""
-                    }
+                    }`}
                     style={{ width: header.column.columnDef.size }}
                   >
                     {header.isPlaceholder ? null : (
@@ -87,13 +88,13 @@ export function DataTable<TData>({
                           header.getContext(),
                         )}
                         {header.column.getCanSort() && (
-                          <div className="h-3 w-3">
+                          <div className="h-4 w-4 text-gray-500">
                             {header.column.getIsSorted() === "desc" ? (
-                              <ArrowDown className="h-3 w-3" />
+                              <ArrowDown className="h-4 w-4" />
                             ) : header.column.getIsSorted() === "asc" ? (
-                              <ArrowUp className="h-3 w-3" />
+                              <ArrowUp className="h-4 w-4" />
                             ) : (
-                              <ArrowUpDown className="h-3 w-3" />
+                              <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         )}
@@ -114,10 +115,12 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="border-b transition-colors hover:bg-gray-50/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
+                      className="px-6 py-4 text-sm text-gray-700"
                       style={{ maxWidth: cell.column.columnDef.size }}
                     >
                       {flexRender(
@@ -132,7 +135,7 @@ export function DataTable<TData>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-32 text-center text-gray-500"
                 >
                   No results.
                 </TableCell>
@@ -140,7 +143,8 @@ export function DataTable<TData>({
             )}
           </TableBody>
         )}
-      </Table>
+        </Table>
+      </Card>
 
       <PaginationControls
         page={current_page}

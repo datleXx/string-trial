@@ -39,7 +39,8 @@ function SubscriptionsList() {
   const utils = api.useUtils();
   const [page, setPage] = useState(1);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [global_search, setGlobalSearch] = useState("");
+  const [organization_search, setOrganizationSearch] = useState("");
+  const [feed_search, setFeedSearch] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   console.log("columnFilters", columnFilters);
@@ -48,7 +49,12 @@ function SubscriptionsList() {
 
   const { data: organizations, isLoading: is_organizations_loading } =
     api.organization.getOrganizationWithFilters.useQuery({
-      global_search,
+      global_search: organization_search,
+    });
+
+  const { data: feeds, isLoading: is_feeds_loading } =
+    api.feed.getWithFilters.useQuery({
+      global_search: feed_search,
     });
 
   const { data: paginated_data, isLoading } =
@@ -170,8 +176,20 @@ function SubscriptionsList() {
         value: org.id,
       })),
       className: "w-fit text-muted-foreground",
-      onSearchChange: setGlobalSearch,
+      onSearchChange: setOrganizationSearch,
       loading: is_organizations_loading,
+    },
+    {
+      id: "feed_name",
+      label: "Feed",
+      type: "dropdown" as const,
+      options: feeds?.map((feed) => ({
+        label: feed.name,
+        value: feed.id,
+      })),
+      className: "w-fit text-muted-foreground",
+      onSearchChange: setFeedSearch,
+      loading: is_feeds_loading,
     },
     {
       id: "status",
