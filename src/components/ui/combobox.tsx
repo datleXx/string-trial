@@ -26,14 +26,16 @@ export function Combobox({
   onChange,
   placeholder,
   onSearchChange,
+  className,
   loading,
 }: {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (value: string) => void;
+  options: { value: string | number; label: string }[];
+  value: string | number;
+  onChange: (value: string | number) => void;
   placeholder?: string;
   onSearchChange?: (search: string) => void;
   loading?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -45,7 +47,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[300px] justify-between font-light"
+          className={cn("w-[300px] justify-between font-light", className)}
         >
           {value
             ? options.find((option) => option.value === value)?.label
