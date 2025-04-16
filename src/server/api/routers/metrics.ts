@@ -267,4 +267,136 @@ export const metricsRouter = createTRPCRouter({
         historical: monthly_metrics.reverse(),
       };
     }),
+
+  getPaymentPatterns: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().optional().default(12),
+      }),
+    )
+    .query(async ({ input }) => {
+      const invoices_data = await db.query.invoices.findMany({
+        orderBy: [desc(invoices.createdAt)],
+      });
+
+      const monthly_metrics = [];
+      const today = new Date();
+
+      for (let i = 0; i < input.months; i++) {
+        const target_date = dayjs(today).subtract(i, "month");
+        const start_of_month = target_date.startOf("month");
+        const end_of_month = target_date.endOf("month");
+
+        const month_invoices = invoices_data.filter((inv) =>
+          dayjs(inv.createdAt).isBetween(
+            start_of_month,
+            end_of_month,
+            null,
+            "[]",
+          ),
+        );
+
+        const total_amount = month_invoices.reduce(
+          (sum, inv) => sum + Number(inv.amount),
+          0,
+        );
+
+        const paid_on_time = month_invoices.filter(
+          (inv) =>
+            inv.status === "paid" &&
+            inv.paidAt &&
+            dayjs(inv.paidAt).isBefore(inv.dueDate),
+        ).length;
+
+        const paid_late = month_invoices.filter(
+          (inv) =>
+            inv.status === "paid" &&
+            inv.paidAt &&
+            dayjs(inv.paidAt).isAfter(inv.dueDate),
+        ).length;
+
+        const unpaid = month_invoices.filter(
+          (inv) => inv.status === "pending",
+        ).length;
+
+        monthly_metrics.push({
+          month: start_of_month.format("YYYY-MM"),
+          "Total Amount": total_amount,
+          "Paid On Time": paid_on_time,
+          "Paid Late": paid_late,
+          Unpaid: unpaid,
+          "Payment Rate":
+            month_invoices.length > 0
+              ? ((paid_on_time + paid_late) / month_invoices.length) * 100
+              : 0,
+        });
+      }
+
+      return monthly_metrics.reverse();
+    }),
+
+  getRevenueForecasting: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().optional().default(12),
+      }),
+    )
+    .query(async ({ input }) => {
+      const subscriptions = await db.query.organizationToFeed.findMany();
+      const invoices_data = await db.query.invoices.findMany({
+        orderBy: [desc(invoices.createdAt)],
+      });
+
+      const monthly_metrics = [];
+      const today = new Date();
+
+      for (let i = 0; i < input.months; i++) {
+        const target_date = dayjs(today).subtract(i, "month");
+        const start_of_month = target_date.startOf("month");
+        const end_of_month = target_date.endOf("month");
+
+        const month_invoices = invoices_data.filter((inv) =>
+          dayjs(inv.dueDate).isBetween(
+            start_of_month,
+            end_of_month,
+            null,
+            "[]",
+          ),
+        );
+
+        const committed_revenue = subscriptions
+          .filter(
+            (sub) =>
+              !sub.accessUntil || dayjs(sub.accessUntil).isAfter(end_of_month),
+          )
+          .reduce((sum, sub) => {
+            const amount = Number(sub.billingAmount);
+            return (
+              sum + (sub.billingFrequency === "yearly" ? amount / 12 : amount)
+            );
+          }, 0);
+
+        const actual_revenue = month_invoices
+          .filter((inv) => inv.status === "paid")
+          .reduce((sum, inv) => sum + Number(inv.amount), 0);
+
+        const projected_revenue = month_invoices.reduce(
+          (sum, inv) => sum + Number(inv.amount),
+          0,
+        );
+
+        monthly_metrics.push({
+          month: start_of_month.format("YYYY-MM"),
+          "Committed MRR": committed_revenue,
+          "Actual Revenue": actual_revenue,
+          "Projected Revenue": projected_revenue,
+          "Collection Efficiency":
+            projected_revenue > 0
+              ? (actual_revenue / projected_revenue) * 100
+              : 0,
+        });
+      }
+
+      return monthly_metrics.reverse();
+    }),
 });

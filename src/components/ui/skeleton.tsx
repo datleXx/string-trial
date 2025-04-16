@@ -110,3 +110,60 @@ export function FormSkeleton() {
     </div>
   );
 }
+
+export function AdvancedMetricsSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      {/* User Cohort Analysis Skeleton */}
+      <div className="rounded-xl border bg-white">
+        <div className="p-6">
+          <Skeleton variant="title" className="mb-4" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+
+      {/* Revenue & Subscription Growth Skeleton */}
+      <div className="rounded-xl border bg-white">
+        <div className="p-6">
+          <Skeleton variant="title" className="mb-4" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+
+      {/* Two Column Charts Skeleton */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Billing Frequency Distribution Skeleton */}
+        <div className="rounded-xl border bg-white">
+          <div className="p-6">
+            <Skeleton variant="title" className="mb-4" />
+            <Skeleton className="h-[300px] w-full" />
+          </div>
+        </div>
+
+        {/* Collection Metrics Skeleton */}
+        <div className="rounded-xl border bg-white">
+          <div className="p-6">
+            <Skeleton variant="title" className="mb-4" />
+            <Skeleton className="h-[300px] w-full" />
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Patterns Analysis Skeleton */}
+      <div className="rounded-xl border bg-white">
+        <div className="p-6">
+          <Skeleton variant="title" className="mb-4" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+
+      {/* Revenue Forecasting Skeleton */}
+      <div className="rounded-xl border bg-white">
+        <div className="p-6">
+          <Skeleton variant="title" className="mb-4" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}

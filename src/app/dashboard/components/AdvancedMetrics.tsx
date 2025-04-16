@@ -17,6 +17,7 @@ import {
   Legend,
 } from "recharts";
 import dayjs from "dayjs";
+import { AdvancedMetricsSkeleton } from "~/components/ui/skeleton";
 
 const COLORS = {
   primary: "#0088FE",
@@ -30,16 +31,42 @@ const COLORS = {
 const PIE_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export function AdvancedMetrics() {
-  const { data: user_metrics } = api.metrics.getUserMetrics.useQuery({
-    months: 12,
-    include_inactive: true,
-  });
+  const { data: user_metrics, isLoading: user_metrics_loading } =
+    api.metrics.getUserMetrics.useQuery({
+      months: 12,
+      include_inactive: true,
+    });
 
-  const { data: billing_metrics } = api.metrics.getBillingMetrics.useQuery({
-    months: 12,
-  });
+  const { data: billing_metrics, isLoading: billing_metrics_loading } =
+    api.metrics.getBillingMetrics.useQuery({
+      months: 12,
+    });
 
-  if (!user_metrics || !billing_metrics) return null;
+  const { data: payment_patterns, isLoading: payment_patterns_loading } =
+    api.metrics.getPaymentPatterns.useQuery({
+      months: 12,
+    });
+
+  const { data: revenue_forecast, isLoading: revenue_forecast_loading } =
+    api.metrics.getRevenueForecasting.useQuery({
+      months: 12,
+    });
+
+  const isLoading =
+    user_metrics_loading ||
+    billing_metrics_loading ||
+    payment_patterns_loading ||
+    revenue_forecast_loading;
+
+  if (isLoading) return <AdvancedMetricsSkeleton />;
+
+  if (
+    !user_metrics ||
+    !billing_metrics ||
+    !payment_patterns ||
+    !revenue_forecast
+  )
+    return null;
 
   // Prepare cohort data
   const cohort_data = user_metrics.historical.map((month) => ({
@@ -362,6 +389,131 @@ export function AdvancedMetrics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Patterns Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Patterns Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={payment_patterns}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value: number) => `${value.toFixed(1)}%`}
+                />
+                <Tooltip
+                  contentStyle={{ fontSize: 12 }}
+                  formatter={(value: number, name: string) =>
+                    name === "Payment Rate"
+                      ? [`${value.toFixed(1)}%`, name]
+                      : name === "Total Amount"
+                        ? [`$${value.toFixed(2)}`, name]
+                        : [value, name]
+                  }
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="Paid On Time"
+                  fill={COLORS.success}
+                  stackId="payments"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="Paid Late"
+                  fill={COLORS.warning}
+                  stackId="payments"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="Unpaid"
+                  fill={COLORS.error}
+                  stackId="payments"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Payment Rate"
+                  stroke={COLORS.purple}
+                  strokeWidth={2}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Revenue Forecasting */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Forecasting & Collection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={revenue_forecast}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis
+                  yAxisId="left"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value: number) =>
+                    `$${(value / 1000).toFixed(0)}k`
+                  }
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value: number) => `${value.toFixed(1)}%`}
+                />
+                <Tooltip
+                  contentStyle={{ fontSize: 12 }}
+                  formatter={(value: number, name: string) =>
+                    name === "Collection Efficiency"
+                      ? [`${value.toFixed(1)}%`, name]
+                      : [`$${value.toFixed(2)}`, name]
+                  }
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area
+                  yAxisId="left"
+                  dataKey="Projected Revenue"
+                  fill={COLORS.primary}
+                  fillOpacity={0.3}
+                  stroke={COLORS.primary}
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="Actual Revenue"
+                  fill={COLORS.success}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="Committed MRR"
+                  stroke={COLORS.warning}
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Collection Efficiency"
+                  stroke={COLORS.purple}
+                  strokeWidth={2}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
