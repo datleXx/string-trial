@@ -17,7 +17,7 @@ import { signOut } from "next-auth/react";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
 import { cn } from "~/lib/utils";
 function DashboardLayout({ children }: { children: ReactNode }) {
-  const { is_authenticated, user } = useRoleGuard({
+  const { is_authenticated, user, is_loading } = useRoleGuard({
     required_roles: ["admin", "user", "viewer"],
   });
 
@@ -26,10 +26,10 @@ function DashboardLayout({ children }: { children: ReactNode }) {
   const has_elevated_access = ["admin", "viewer"].includes(user?.role ?? "");
 
   useEffect(() => {
-    if (!is_authenticated) {
+    if (!is_authenticated && !is_loading) {
       redirect("/auth/signin");
     }
-  }, [is_authenticated]);
+  }, [is_authenticated, is_loading]);
 
   return (
     <div className="flex h-screen bg-gray-50">
