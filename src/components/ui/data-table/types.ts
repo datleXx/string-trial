@@ -15,6 +15,7 @@ export type FilterMeta = {
   placeholder?: string;
   className?: string;
   onSearchChange?: (search: string) => void;
+  loading?: boolean;
 };
 
 export type DataTableProps<TData> = {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
@@ -199,10 +199,20 @@ export const subscriptionRouter = createTRPCRouter({
 
       let where_clause;
       const status_filter = filter_state.find((f) => f.id === "status")?.value;
+      const organization_filter = filter_state.find(
+        (f) => f.id === "organization_name",
+      )?.value;
       if (status_filter === "active") {
         where_clause = sql`${organizationToFeed.accessUntil} > CURRENT_TIMESTAMP`;
       } else if (status_filter === "expired") {
         where_clause = sql`${organizationToFeed.accessUntil} <= CURRENT_TIMESTAMP`;
+      }
+
+      if (organization_filter) {
+        where_clause = and(
+          where_clause,
+          eq(organizationToFeed.organizationId, organization_filter),
+        );
       }
 
       const [items, total_count] = await Promise.all([

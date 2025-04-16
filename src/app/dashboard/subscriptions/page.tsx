@@ -42,6 +42,8 @@ function SubscriptionsList() {
   const [global_search, setGlobalSearch] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  console.log("columnFilters", columnFilters);
+
   const PAGE_SIZE = 10;
 
   const { data: organizations, isLoading: is_organizations_loading } =
@@ -169,6 +171,7 @@ function SubscriptionsList() {
       })),
       className: "w-fit text-muted-foreground",
       onSearchChange: setGlobalSearch,
+      loading: is_organizations_loading,
     },
     {
       id: "status",

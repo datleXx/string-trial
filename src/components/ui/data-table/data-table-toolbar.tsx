@@ -88,10 +88,11 @@ export function DataTableToolbar<TData>({
             );
           }
 
-          if (filter.type === "dropdown" && filter.options) {
+          if (filter.type === "dropdown") {
             return (
               <Combobox
-                options={filter.options}
+                key={filter.id}
+                options={filter.options ?? []}
                 value={
                   (table.getColumn(filter.id)?.getFilterValue() as string) ?? ""
                 }
@@ -99,6 +100,7 @@ export function DataTableToolbar<TData>({
                 onChange={(value) => handleFilterChange(filter.id, value)}
                 placeholder={`Filter ${filter.label}...`}
                 onSearchChange={(search) => filter.onSearchChange?.(search)}
+                loading={filter.loading}
               />
             );
           }
