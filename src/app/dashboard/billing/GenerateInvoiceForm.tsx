@@ -3,29 +3,19 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { Button } from "~/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { type RouterOutputs } from "~/trpc/shared";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
 import { Checkbox } from "~/components/ui/checkbox";
+import { Combobox } from "~/components/ui/combobox";
 
-type Organization = RouterOutputs["organization"]["getAll"][number];
-
-interface GenerateInvoiceFormProps {
-  organizations: Organization[];
-}
-
-export function GenerateInvoiceForm({
-  organizations,
-}: GenerateInvoiceFormProps) {
+export function GenerateInvoiceForm() {
+  const [global_search, setGlobalSearch] = useState<string>("");
+  const { data: organizations = [], isLoading } =
+    api.organization.getOrganizationWithFilters.useQuery({
+      global_search: global_search,
+    });
   const [selected_org, setSelectedOrg] = useState<string>("");
   const [selected_subscriptions, setSelectedSubscriptions] = useState<string[]>(
     [],
@@ -104,10 +94,6 @@ export function GenerateInvoiceForm({
     });
   };
 
-  const selected_org_name = organizations.find(
-    (org) => org.id === selected_org,
-  )?.name;
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6">
@@ -115,20 +101,18 @@ export function GenerateInvoiceForm({
           <Label htmlFor="organization" className="text-sm font-medium">
             Organization
           </Label>
-          <Select value={selected_org} onValueChange={setSelectedOrg}>
-            <SelectTrigger className="w-full font-light">
-              <SelectValue
-                placeholder={selected_org_name ?? "Select organization"}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={organizations.map((org) => ({
+              value: org.id,
+              label: org.name,
+            }))}
+            value={selected_org}
+            onChange={setSelectedOrg}
+            onSearchChange={(search) => {
+              setGlobalSearch(search);
+            }}
+            loading={isLoading}
+          />
         </div>
 
         {selected_org && subscriptions.length > 0 && (

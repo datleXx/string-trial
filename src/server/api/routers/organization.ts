@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, ilike, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizations } from "~/server/db/schema";
@@ -17,6 +17,28 @@ export const organizationRouter = createTRPCRouter({
       orderBy: [desc(organizations.name)],
     });
   }),
+
+  getOrganizationWithFilters: protectedProcedure
+    .input(
+      z.object({
+        global_search: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { global_search } = input;
+
+      const query = db.query.organizations.findMany({
+        orderBy: [desc(organizations.name)],
+        where: global_search
+          ? (org, { ilike }) =>
+              ilike(org.name, `%${global_search}%`) ||
+              ilike(org.billingEmail, `%${global_search}%`)
+          : undefined,
+        limit: global_search ? undefined : 20,
+      });
+
+      return query;
+    }),
 
   getPaginated: protectedProcedure
     .input(
