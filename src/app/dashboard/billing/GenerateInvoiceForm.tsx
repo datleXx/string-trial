@@ -120,7 +120,7 @@ export function GenerateInvoiceForm() {
               label: org.name,
             }))}
             value={selected_org}
-            onChange={setSelectedOrg}
+            onChange={(value) => setSelectedOrg(value as string)}
             onSearchChange={(search) => {
               setGlobalSearch(search);
             }}
