@@ -1,6 +1,10 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
+import { TableCell } from "./table";
+import { TableRow } from "./table";
+import { TableBody } from "./table";
+import type { ColumnDef } from "@tanstack/react-table";
 
 const skeletonVariants = cva("animate-pulse rounded-md bg-muted/50", {
   variants: {
@@ -54,6 +58,33 @@ export function TableRowSkeleton() {
         <Skeleton className="h-4 w-[200px]" />
       </div>
     </div>
+  );
+}
+
+export function TableRowSkeletonTanStack({
+  columns,
+}: {
+  columns: ColumnDef<any>[];
+}) {
+  return (
+    <TableBody>
+      {Array.from({ length: 10 }).map((_, index) => (
+        <TableRow
+          key={`skeleton-${index}`}
+          className="border-b transition-colors hover:bg-gray-50/50"
+        >
+          {columns.map((column, cellIndex) => (
+            <TableCell
+              key={`skeleton-cell-${cellIndex}`}
+              style={{ maxWidth: column.size }}
+              className="h-[49px] px-3 py-2 text-sm text-gray-700"
+            >
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
   );
 }
 

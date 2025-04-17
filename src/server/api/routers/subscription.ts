@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { organizationToFeed, organizations, feeds } from "~/server/db/schema";
@@ -141,24 +141,103 @@ export const subscriptionRouter = createTRPCRouter({
       z.object({
         page: z.number().min(1).default(1),
         page_size: z.number().min(1).max(100).default(10),
+        sorting_state: z.object({
+          id: z.string(),
+          direction: z.enum(["asc", "desc"]),
+        }),
+        filter_state: z.array(
+          z.object({
+            id: z.string(),
+            value: z.string(),
+          }),
+        ),
       }),
     )
     .query(async ({ input }) => {
-      const { page, page_size } = input;
+      const { page, page_size, sorting_state, filter_state } = input;
 
+      let sort_by = undefined;
+      switch (sorting_state.id) {
+        case "organization_name":
+          if (sorting_state.direction === "asc") {
+            sort_by = asc(organizationToFeed.organizationId);
+          } else {
+            sort_by = desc(organizationToFeed.organizationId);
+          }
+          break;
+        case "feed_name":
+          if (sorting_state.direction === "asc") {
+            sort_by = asc(feeds.name);
+          } else {
+            sort_by = desc(feeds.name);
+          }
+          break;
+        case "status":
+          if (sorting_state.direction === "asc") {
+            sort_by = asc(organizationToFeed.accessUntil);
+          } else {
+            sort_by = desc(organizationToFeed.accessUntil);
+          }
+          break;
+        case "accessUntil":
+          if (sorting_state.direction === "asc") {
+            sort_by = asc(organizationToFeed.accessUntil);
+          } else {
+            sort_by = desc(organizationToFeed.accessUntil);
+          }
+          break;
+        case "billing":
+          if (sorting_state.direction === "asc") {
+            sort_by = asc(organizationToFeed.billingAmount);
+          } else {
+            sort_by = desc(organizationToFeed.billingAmount);
+          }
+          break;
+        default:
+          sort_by = desc(organizationToFeed.createdAt);
+      }
+
+      let where_clause;
+      const status_filter = filter_state.find((f) => f.id === "status")?.value;
+      const organization_filter = filter_state.find(
+        (f) => f.id === "organization_name",
+      )?.value;
+      const feed_filter = filter_state.find((f) => f.id === "feed_name")?.value;
+      if (status_filter === "active") {
+        where_clause = sql`${organizationToFeed.accessUntil} > CURRENT_TIMESTAMP`;
+      } else if (status_filter === "expired") {
+        where_clause = sql`${organizationToFeed.accessUntil} <= CURRENT_TIMESTAMP`;
+      }
+
+      if (organization_filter) {
+        where_clause = and(
+          where_clause,
+          eq(organizationToFeed.organizationId, organization_filter),
+        );
+      }
+
+      if (feed_filter) {
+        where_clause = and(
+          where_clause,
+          eq(organizationToFeed.feedId, feed_filter),
+        );
+      }
       const [items, total_count] = await Promise.all([
         db.query.organizationToFeed.findMany({
           with: {
             organization: true,
             feed: true,
           },
+          where: where_clause,
           limit: page_size,
           offset: (page - 1) * page_size,
-          orderBy: [desc(organizationToFeed.createdAt)],
+          orderBy: [sort_by],
         }),
+
         db
           .select({ count: sql<number>`count(*)` })
           .from(organizationToFeed)
+          .where(where_clause)
           .then((res) => Number(res[0]?.count ?? 0)),
       ]);
 
