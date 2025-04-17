@@ -53,49 +53,49 @@ function DashboardMetrics() {
     months: 12,
   });
 
-  if (isLoading || !metrics) {
-    return <DashboardMetricsLoading />;
-  }
-
   const formatted_mrr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.current.total_mrr);
+  }).format(metrics?.current.total_mrr ?? 0);
 
   const formatted_arr = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.current.total_arr);
+  }).format(metrics?.current.total_arr ?? 0);
 
   const formatted_avg = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(metrics.current.average_invoice_value);
+  }).format(metrics?.current.average_invoice_value ?? 0);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Monthly Recurring Revenue"
-          value={formatted_mrr}
-          description="Total MRR from all subscriptions"
-        />
-        <MetricCard
-          title="Annual Recurring Revenue"
-          value={formatted_arr}
-          description="Total ARR from all subscriptions"
-        />
-        <MetricCard
-          title="Total Organizations"
-          value={metrics.current.organization_count}
-          description="Number of active organizations"
-        />
-        <MetricCard
-          title="Average Subscription Value"
-          value={formatted_avg}
-          description="Average value per subscription"
-        />
-      </div>
+      {isLoading ? (
+        <DashboardMetricsLoading />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Monthly Recurring Revenue"
+            value={formatted_mrr}
+            description="Total MRR from all subscriptions"
+          />
+          <MetricCard
+            title="Annual Recurring Revenue"
+            value={formatted_arr}
+            description="Total ARR from all subscriptions"
+          />
+          <MetricCard
+            title="Total Organizations"
+            value={metrics?.current.organization_count ?? 0}
+            description="Number of active organizations"
+          />
+          <MetricCard
+            title="Average Subscription Value"
+            value={formatted_avg}
+            description="Average value per subscription"
+          />
+        </div>
+      )}
 
       <AdvancedMetrics />
 
