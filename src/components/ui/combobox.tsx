@@ -48,7 +48,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-[300px] justify-between font-light",
+            "h-8 w-[300px] justify-between font-light",
             className,
             value ? "text-foreground" : "text-muted-foreground",
           )}
@@ -59,7 +59,7 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
           <CommandInput
             className="font-light"
