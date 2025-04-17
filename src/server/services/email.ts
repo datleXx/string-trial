@@ -1,22 +1,13 @@
 import nodemailer from "nodemailer";
-import { env } from "~/env";
 
 const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST as string,
-  port: parseInt(env.SMTP_PORT as string),
-  secure: env.SMTP_SECURE === "true",
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT ?? "587"),
+  secure: process.env.SMTP_SECURE === "true",
   auth: {
-    user: env.SMTP_USER as string,
-    pass: env.SMTP_PASSWORD as string,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
   },
-});
-
-// Add some debug logging
-console.log("SMTP Config:", {
-  host: env.SMTP_HOST as string,
-  port: env.SMTP_PORT as string,
-  secure: env.SMTP_SECURE === "true",
-  auth: { user: env.SMTP_USER as string, pass: "***" },
 });
 
 interface SendInvoiceEmailParams {
