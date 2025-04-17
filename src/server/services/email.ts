@@ -15,7 +15,7 @@ interface SendInvoiceEmailParams {
   invoice_number: string;
   organization_name: string;
   amount: number;
-  feed_name?: string;
+  feed_names?: string[];
   pdf_buffer: Buffer;
 }
 
@@ -23,7 +23,7 @@ export async function sendInvoiceEmail({
   to,
   invoice_number,
   organization_name,
-  feed_name,
+  feed_names,
   amount,
   pdf_buffer,
 }: SendInvoiceEmailParams): Promise<void> {
@@ -31,11 +31,11 @@ export async function sendInvoiceEmail({
     from: process.env.EMAIL_FROM ?? "billing@yourcompany.com",
     to,
     subject: `Invoice ${invoice_number} for ${organization_name}`,
-    text: `Please find attached invoice ${invoice_number} for your subscription ${feed_name ? `(${feed_name})` : ""}`,
+    text: `Please find attached invoice ${invoice_number} for your subscription ${feed_names ? `(${feed_names.join(", ")})` : ""}`,
     html: `
       <h2>Invoice ${invoice_number}</h2>
       <p>Dear ${organization_name},</p>
-      <p>Please find attached your invoice for ${feed_name ? `(${feed_name})` : ""} for $${amount.toFixed(2)}.</p>
+      <p>Please find attached your invoice ${feed_names ? `for (${feed_names.join(", ")})` : ""} for $${amount.toFixed(2)}.</p>
       <p>Thank you for your business!</p>
     `,
     attachments: [

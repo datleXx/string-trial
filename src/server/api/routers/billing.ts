@@ -116,6 +116,7 @@ export const billingRouter = createTRPCRouter({
             invoice_number: invoice_number,
             organization_name: organization.name,
             amount: total_amount,
+            feed_names: line_items.map((item) => item.feedName),
             pdf_buffer: pdf_buffer,
           });
         } catch (error) {
