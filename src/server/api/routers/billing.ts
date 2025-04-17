@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, desc, inArray, asc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   organizationToFeed,
@@ -196,163 +196,27 @@ export const billingRouter = createTRPCRouter({
       z.object({
         page: z.number().min(1).default(1),
         page_size: z.number().min(1).max(100).default(10),
-        sorting_state: z
-          .object({
-            id: z.string(),
-            direction: z.enum(["asc", "desc"]),
-          })
-          .optional(),
-        filter_state: z
-          .array(
-            z.object({
-              id: z.string(),
-              value: z.string().or(
-                z.object({
-                  from: z.number().optional(),
-                  to: z.number().optional(),
-                }),
-              ),
-            }),
-          )
-          .optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, page_size, sorting_state, filter_state } = input;
+      const { page, page_size } = input;
 
-      let sort_by;
-      switch (sorting_state?.id) {
-        case "createdAt":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.createdAt)
-              : asc(invoices.createdAt),
-          ];
-          break;
-        case "invoiceNumber":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.invoiceNumber)
-              : asc(invoices.invoiceNumber),
-          ];
-          break;
-        case "amount":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.amount)
-              : asc(invoices.amount),
-          ];
-          break;
-        case "dueDate":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.dueDate)
-              : asc(invoices.dueDate),
-          ];
-          break;
-        case "status":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.status)
-              : asc(invoices.status),
-          ];
-          break;
-        case "paidAt":
-          sort_by = [
-            sorting_state.direction === "desc"
-              ? desc(invoices.paidAt)
-              : asc(invoices.paidAt),
-          ];
-          break;
-
-        default:
-          sort_by = [desc(invoices.createdAt)];
-          break;
-      }
-
-      let where_clause;
-
-      const organization_filter = filter_state?.find(
-        (f) => f.id === "organizationToFeed.organization.name",
-      )?.value;
-
-      const status_filter = filter_state?.find((f) => f.id === "status")?.value;
-
-      const amount_filter = filter_state?.find((f) => f.id === "amount")?.value;
-
-      const due_date_filter = filter_state?.find(
-        (f) => f.id === "dueDate",
-      )?.value;
-
-      const paid_at_filter = filter_state?.find(
-        (f) => f.id === "paidAt",
-      )?.value;
-
-      if (status_filter) {
-        where_clause = and(
-          where_clause,
-          eq(invoices.status, status_filter as string),
-        );
-      }
-
-      if (organization_filter) {
-        where_clause = and(
-          where_clause,
-          eq(invoices.organizationId, organization_filter as string),
-        );
-      }
-
-      if (amount_filter && typeof amount_filter !== "string") {
-        where_clause = and(
-          where_clause,
-          amount_filter.from && amount_filter.to
-            ? sql`${invoices.amount} BETWEEN ${amount_filter.from.toString()} AND ${amount_filter.to.toString()}`
-            : amount_filter.from
-              ? sql`${invoices.amount} >= ${amount_filter.from.toString()}`
-              : amount_filter.to
-                ? sql`${invoices.amount} <= ${amount_filter.to.toString()}`
-                : undefined,
-        );
-      }
-      if (due_date_filter && typeof due_date_filter !== "string") {
-        where_clause =
-          due_date_filter.from && due_date_filter.to
-            ? sql`${invoices.dueDate} BETWEEN ${dayjs(due_date_filter.from).format("YYYY-MM-DD HH:mm:ss")} AND ${dayjs(due_date_filter.to).format("YYYY-MM-DD HH:mm:ss")}`
-            : due_date_filter.from
-              ? sql`${invoices.dueDate} >= ${dayjs(due_date_filter.from).format("YYYY-MM-DD HH:mm:ss")}`
-              : due_date_filter.to
-                ? sql`${invoices.dueDate} <= ${dayjs(due_date_filter.to).format("YYYY-MM-DD HH:mm:ss")}`
-                : undefined;
-      }
-      if (paid_at_filter && typeof paid_at_filter !== "string") {
-        where_clause =
-          paid_at_filter.from && paid_at_filter.to
-            ? sql`${invoices.paidAt} BETWEEN ${dayjs(paid_at_filter.from).format("YYYY-MM-DD HH:mm:ss")} AND ${dayjs(paid_at_filter.to).format("YYYY-MM-DD HH:mm:ss")}`
-            : paid_at_filter.from
-              ? sql`${invoices.paidAt} >= ${dayjs(paid_at_filter.from).format("YYYY-MM-DD HH:mm:ss")}`
-              : paid_at_filter.to
-                ? sql`${invoices.paidAt} <= ${dayjs(paid_at_filter.to).format("YYYY-MM-DD HH:mm:ss")}`
-                : undefined;
-      }
       const [items, total_count] = await Promise.all([
         db.query.invoices.findMany({
           with: {
             organizationToFeed: {
               with: {
                 feed: true,
-                organization: true,
               },
             },
           },
           limit: page_size,
           offset: (page - 1) * page_size,
-          orderBy: sort_by,
-          where: where_clause,
+          orderBy: [desc(invoices.createdAt)],
         }),
         db
           .select({ count: sql<number>`count(*)` })
           .from(invoices)
-          .where(where_clause)
           .then((res) => Number(res[0]?.count ?? 0)),
       ]);
 

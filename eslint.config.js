@@ -30,7 +30,6 @@ export default tseslint.config(
     "import/no-unused-modules": "off",
     "no-unused-vars": "off",
     "import/no-unresolved": "off",
-    "@typescript-eslint/no-explicit-any": "off",
     "import/no-anonymous-default-export": [
       "error",
       {

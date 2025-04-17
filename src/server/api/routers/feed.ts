@@ -26,23 +26,6 @@ export const feedRouter = createTRPCRouter({
       });
     }),
 
-  getWithFilters: protectedProcedure
-    .input(
-      z.object({
-        global_search: z.string().optional(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const { global_search } = input;
-
-      const feeds = await db.query.feeds.findMany({
-        where: (feeds, { like }) => like(feeds.name, `%${global_search}%`),
-        limit: !global_search ? 20 : undefined,
-      });
-
-      return feeds;
-    }),
-
   create: protectedProcedure
     .input(createFeedSchema)
     .mutation(async ({ input }) => {

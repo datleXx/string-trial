@@ -26,16 +26,14 @@ export function Combobox({
   onChange,
   placeholder,
   onSearchChange,
-  className,
   loading,
 }: {
-  options: { value: string | number; label: string }[];
-  value: string | number;
-  onChange: (value: string | number) => void;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
   placeholder?: string;
   onSearchChange?: (search: string) => void;
   loading?: boolean;
-  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -47,11 +45,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            "h-8 w-[300px] justify-between font-light",
-            className,
-            value ? "text-foreground" : "text-muted-foreground",
-          )}
+          className="w-[300px] justify-between font-light"
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -59,9 +53,10 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
+      <PopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput
+            autoComplete="on"
             className="font-light"
             placeholder={placeholder ?? "Search..."}
             value={search}
