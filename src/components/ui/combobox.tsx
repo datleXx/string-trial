@@ -47,7 +47,11 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-[300px] justify-between font-light", className)}
+          className={cn(
+            "w-[300px] justify-between font-light",
+            className,
+            value ? "text-foreground" : "text-muted-foreground",
+          )}
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -58,7 +62,6 @@ export function Combobox({
       <PopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput
-            autoComplete="on"
             className="font-light"
             placeholder={placeholder ?? "Search..."}
             value={search}

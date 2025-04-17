@@ -93,6 +93,7 @@ function SubscriptionsList() {
           {row.original.organization.name}
         </div>
       ),
+      enableSorting: false,
       size: 192,
     },
     {
@@ -101,6 +102,7 @@ function SubscriptionsList() {
       cell: ({ row }) => (
         <div className="hidden truncate md:block">{row.original.feed.name}</div>
       ),
+      enableSorting: false,
       size: 192,
     },
     {
@@ -175,7 +177,7 @@ function SubscriptionsList() {
         label: org.name,
         value: org.id,
       })),
-      className: "w-fit text-muted-foreground",
+      className: "w-fit",
       onSearchChange: setOrganizationSearch,
       loading: is_organizations_loading,
     },
@@ -187,7 +189,7 @@ function SubscriptionsList() {
         label: feed.name,
         value: feed.id,
       })),
-      className: "w-fit text-muted-foreground",
+      className: "w-fit",
       onSearchChange: setFeedSearch,
       loading: is_feeds_loading,
     },
