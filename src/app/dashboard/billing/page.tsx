@@ -10,12 +10,12 @@ function BillingMetrics() {
     months: 12,
   });
 
-  if (!metrics) {
-    return null;
-  }
-
   if (isLoading) {
     return <BillingMetricsLoading />;
+  }
+
+  if (!metrics) {
+    return null;
   }
 
   const formatted_mrr = new Intl.NumberFormat("en-US", {

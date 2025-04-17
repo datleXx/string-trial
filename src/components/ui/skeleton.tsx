@@ -90,7 +90,7 @@ export function TableRowSkeletonTanStack({
 
 export function MetricCardSkeleton() {
   return (
-    <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl border bg-white p-5">
       <Skeleton variant="title" className="mb-4" />
       <Skeleton className="h-8 w-[120px]" />
       <Skeleton className="mt-4 h-4 w-[180px]" />
