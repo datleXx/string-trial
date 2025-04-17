@@ -26,6 +26,7 @@ import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 import { NoData } from "~/components/ui/no-data";
 import { useRoleGuard } from "~/hooks/useRoleGuard";
+import { TableSkeleton } from "~/components/ui/skeleton";
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -37,9 +38,8 @@ export default function AdminUsersPage() {
 
   const view_only = user?.role === "viewer";
 
-  const { data: users } = api.admin.getAllUsers.useQuery(undefined, {
-    refetchInterval: 30000,
-  });
+  const { data: users, isLoading: users_loading } =
+    api.admin.getAllUsers.useQuery(undefined);
 
   const utils = api.useUtils();
 
@@ -82,130 +82,132 @@ export default function AdminUsersPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Users</CardTitle>
-            <div className="w-72">
-              <Input
-                placeholder="Search users..."
-                value={search_query}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-              />
+      {users_loading ? (
+        <TableSkeleton />
+      ) : (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Users</CardTitle>
+              <div className="w-72">
+                <Input
+                  placeholder="Search users..."
+                  value={search_query}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!filtered_users?.length ? (
-            <NoData
-              title="No users found"
-              message="No users match your search criteria."
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Last Login</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered_users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {user.image ? (
-                          <Image
-                            src={user.image}
-                            alt={user.name ?? ""}
-                            width={32}
-                            height={32}
-                            className="rounded-full"
-                          />
-                        ) : (
-                          <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
-                            {user.name?.[0]?.toUpperCase() ??
-                              user.email[0]?.toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-muted-foreground font-light text-sm">
-                            Joined{" "}
-                            {new Date(user.createdAt).toLocaleDateString()}
+          </CardHeader>
+          <CardContent>
+            {!filtered_users?.length ? (
+              <NoData
+                title="No users found"
+                message="No users match your search criteria."
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Last Login</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered_users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {user.image ? (
+                            <Image
+                              src={user.image}
+                              alt={user.name ?? ""}
+                              width={32}
+                              height={32}
+                              className="rounded-full"
+                            />
+                          ) : (
+                            <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
+                              {user.name?.[0]?.toUpperCase() ??
+                                user.email[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-muted-foreground text-sm font-light">
+                              Joined{" "}
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-light">
-                      {user.email}
-                    </TableCell>
-                    <TableCell className="font-light">
-                      <Select
-                        value={user.role}
-                        onValueChange={(value: "admin" | "user") =>
-                          handleRoleChange(user.id, value)
-                        }
-                      >
-                        <SelectTrigger
-                          disabled={view_only}
-                          className="w-[110px]"
+                      </TableCell>
+                      <TableCell className="font-light">{user.email}</TableCell>
+                      <TableCell className="font-light">
+                        <Select
+                          value={user.role}
+                          onValueChange={(value: "admin" | "user") =>
+                            handleRoleChange(user.id, value)
+                          }
                         >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                          <SelectItem value="user">User</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="font-light">
-                      {user.lastLogin
-                        ? new Date(user.lastLogin).toLocaleString()
-                        : "Never"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          user.role === "admin"
-                            ? "default"
+                          <SelectTrigger
+                            disabled={view_only}
+                            className="w-[110px]"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                            <SelectItem value="user">User</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="font-light">
+                        {user.lastLogin
+                          ? new Date(user.lastLogin).toLocaleString()
+                          : "Never"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            user.role === "admin"
+                              ? "default"
+                              : user.role === "viewer"
+                                ? "secondary"
+                                : "default"
+                          }
+                        >
+                          {user.role === "admin"
+                            ? "Admin"
                             : user.role === "viewer"
-                              ? "secondary"
-                              : "default"
-                        }
-                      >
-                        {user.role === "admin"
-                          ? "Admin"
-                          : user.role === "viewer"
-                            ? "Viewer"
-                            : "User"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/dashboard/admin/users/${user.id}`)
-                        }
-                        className="text-xs"
-                      >
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                              ? "Viewer"
+                              : "User"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            router.push(`/dashboard/admin/users/${user.id}`)
+                          }
+                          className="text-xs"
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
