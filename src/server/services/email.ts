@@ -1,9 +1,14 @@
-import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 
-if (!process.env.SENDGRID_API_KEY) {
-  console.warn("SENDGRID_API_KEY is not set. Emails will not be sent.");
-}
-sgMail.setApiKey(process.env.SENDGRID_API_KEY ?? "");
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT ?? "587"),
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
+});
 
 interface SendInvoiceEmailParams {
   to: string;
@@ -22,9 +27,9 @@ export async function sendInvoiceEmail({
   amount,
   pdf_buffer,
 }: SendInvoiceEmailParams): Promise<void> {
-  const msg = {
-    to,
+  const mail_options = {
     from: process.env.EMAIL_FROM ?? "billing@yourcompany.com",
+    to,
     subject: `Invoice ${invoice_number} for ${organization_name}`,
     text: `Please find attached invoice ${invoice_number} for your subscription ${feed_name ? `(${feed_name})` : ""}`,
     html: `
@@ -35,18 +40,16 @@ export async function sendInvoiceEmail({
     `,
     attachments: [
       {
-        content: pdf_buffer.toString("base64"),
         filename: `invoice-${invoice_number}.pdf`,
-        type: "application/pdf",
-        disposition: "attachment",
+        content: pdf_buffer,
       },
     ],
   };
 
   try {
-    await sgMail.send(msg);
+    await transporter.sendMail(mail_options);
   } catch (error) {
-    console.error("Error sending email:", JSON.stringify(error, null, 2));
+    console.error("Error sending email:", error);
     throw new Error("Failed to send invoice email");
   }
 }
