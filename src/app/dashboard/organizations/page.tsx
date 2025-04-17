@@ -1,20 +1,9 @@
 "use client";
 import { Button } from "~/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { NoData } from "~/components/ui/no-data";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { Building2, MoreVertical, Eye, Trash2 } from "lucide-react";
-import { api } from "~/trpc/react";
-import { TableSkeleton } from "~/components/ui/skeleton";
-import { CreateOrganizationDialog } from "./CreateOrganizationDialog";
+import { MoreVertical, Eye, Trash2 } from "lucide-react";
+import { api, type RouterOutputs } from "~/trpc/react";
+
 import { ViewOrganizationDialog } from "./ViewOrganizationDialog";
 import {
   DropdownMenu,
@@ -24,15 +13,33 @@ import {
 } from "~/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
 import { useState } from "react";
-import { PaginationControls } from "~/app/_components/PaginationControls";
+
+import type {
+  SortingState,
+  ColumnFiltersState,
+  ColumnDef,
+} from "@tanstack/react-table";
+import { DataTable } from "~/components/ui/data-table/data-table";
+import type { FilterMeta } from "~/components/ui/data-table/types";
+
+const PAGE_SIZE = 10;
 
 export default function OrganizationsPage() {
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const { data, isLoading } = api.organization.getPaginated.useQuery({
     page,
-    page_size: pageSize,
+    page_size: PAGE_SIZE,
+    sorting_state: {
+      id: sorting[0]?.id ?? "",
+      direction: sorting[0]?.desc ? "desc" : "asc",
+    },
+    column_filters: columnFilters as {
+      id: string;
+      value: string | { from: number; to: number };
+    }[],
   });
   const utils = api.useUtils();
 
@@ -52,6 +59,109 @@ export default function OrganizationsPage() {
     }
   };
 
+  const columns: ColumnDef<
+    RouterOutputs["organization"]["getPaginated"]["items"][number]
+  >[] = [
+    {
+      header: "Name", // the id will act as the global for this column TODO: fix this
+      accessorKey: "name",
+      cell: ({ row }) => <div className="truncate">{row.original.name}</div>,
+      size: 150,
+    },
+    {
+      header: "Billing Email",
+      accessorKey: "billingEmail",
+      cell: ({ row }) => (
+        <div className="truncate">{row.original.billingEmail}</div>
+      ),
+      size: 180,
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.original.status === "active" ? "default" : "secondary"}
+          className="capitalize"
+        >
+          {row.original.status}
+        </Badge>
+      ),
+      size: 120,
+    },
+    {
+      header: "Created",
+      accessorKey: "createdAt",
+      cell: ({ row }) => (
+        <div>{row.original.createdAt.toLocaleDateString()}</div>
+      ),
+      size: 120,
+    },
+    {
+      header: "Updated",
+      accessorKey: "updatedAt",
+      cell: ({ row }) => (
+        <div>{row.original.updatedAt?.toLocaleDateString() ?? "Never"}</div>
+      ),
+      size: 120,
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <ViewOrganizationDialog organizationId={row.original.id}>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Eye className="mr-1 h-3 w-3" />
+                  <span className="text-sm">View</span>
+                </DropdownMenuItem>
+              </ViewOrganizationDialog>
+              <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+                <Trash2 className="mr-1 h-3 w-3 text-red-600" />
+                <span className="text-sm text-red-600">Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+      size: 80,
+    },
+  ];
+
+  const filter_meta: FilterMeta[] = [
+    {
+      id: "name",
+      label: "",
+      type: "text",
+      placeholder: "Search organizations...",
+    },
+    {
+      id: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
+      id: "createdAt",
+      label: "Created",
+      type: "date",
+    },
+    {
+      id: "updatedAt",
+      label: "Updated",
+      type: "date",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-5">
       <div>
@@ -61,131 +171,18 @@ export default function OrganizationsPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <CardTitle>Organizations</CardTitle>
-            <div className="flex gap-4">
-              <CreateOrganizationDialog>
-                <Button className="w-full sm:w-auto">
-                  <Building2 className="mr-2 h-4 w-4" />
-                  New Organization
-                </Button>
-              </CreateOrganizationDialog>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <TableSkeleton />
-          ) : data?.items.length === 0 ? (
-            <NoData
-              title="No organizations found"
-              message="You can create a new organization by clicking the button above."
-            />
-          ) : (
-            <div className="space-y-4">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Billing Email
-                      </TableHead>
-                      <TableHead className="hidden sm:table-cell">
-                        Status
-                      </TableHead>
-                      <TableHead className="hidden lg:table-cell">
-                        Created
-                      </TableHead>
-                      <TableHead className="hidden lg:table-cell">
-                        Last Updated
-                      </TableHead>
-                      <TableHead className="table-cell">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data?.items.map((org) => (
-                      <TableRow key={org.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
-                              {org.name?.[0]?.toUpperCase() ?? "O"}
-                            </div>
-                            <div>
-                              <div className="font-medium">{org.name}</div>
-                              <div className="text-muted-foreground text-sm font-light md:hidden">
-                                {org.billingEmail}
-                              </div>
-                              <div className="text-muted-foreground text-xs font-light">
-                                ID: {org.id}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden font-light md:table-cell">
-                          {org.billingEmail}
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge
-                            className="capitalize"
-                            variant={
-                              org.status === "active" ? "default" : "secondary"
-                            }
-                          >
-                            {org.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden font-light lg:table-cell">
-                          {org.createdAt.toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="hidden font-light lg:table-cell">
-                          {org.updatedAt?.toLocaleDateString() ?? "Never"}
-                        </TableCell>
-                        <TableCell className="table-cell">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <ViewOrganizationDialog organizationId={org.id}>
-                                <DropdownMenuItem
-                                  onSelect={(e) => e.preventDefault()}
-                                >
-                                  <Eye className="mr-1 h-3 w-3" />
-                                  <span className="text-sm">View</span>
-                                </DropdownMenuItem>
-                              </ViewOrganizationDialog>
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(org.id)}
-                              >
-                                <Trash2 className="mr-1 h-3 w-3 text-red-600" />
-                                <span className="text-sm text-red-600">
-                                  Delete
-                                </span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <PaginationControls
-                page={page}
-                total_pages={data?.metadata.page_count ?? 1}
-                setPage={setPage}
-                loading={isLoading}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        page_count={data?.metadata.page_count ?? 0}
+        current_page={page}
+        columnFilters={columnFilters}
+        onPaginationChange={setPage}
+        onSortingChange={setSorting}
+        onFilterChange={setColumnFilters}
+        filter_meta={filter_meta}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

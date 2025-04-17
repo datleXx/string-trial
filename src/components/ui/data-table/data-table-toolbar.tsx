@@ -57,14 +57,17 @@ export function DataTableToolbar<TData>({
             return (
               <Input
                 key={filter.id}
-                placeholder={`Filter ${filter.label}...`}
+                placeholder={filter.placeholder ?? `Filter ${filter.label}...`}
                 value={
                   (table.getColumn(filter.id)?.getFilterValue() as string) ?? ""
                 }
                 onChange={(event) =>
                   handleFilterChange(filter.id, event.target.value)
                 }
-                className="h-8 w-[150px] lg:w-[250px]"
+                className={cn(
+                  "text-muted-foreground focus:text-foreground h-8 w-[150px] bg-white font-light lg:w-[250px]",
+                  filter.className,
+                )}
               />
             );
           }
@@ -79,7 +82,12 @@ export function DataTableToolbar<TData>({
                 onValueChange={(value) => handleFilterChange(filter.id, value)}
               >
                 <SelectTrigger className="!h-8 w-fit bg-white font-light">
-                  <SelectValue placeholder={`Filter ${filter.label}...`} />
+                  <SelectValue
+                    placeholder={
+                      filter.placeholder ??
+                      `Filter ${filter.label.toLowerCase()}...`
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filter.options.map((option) => (
@@ -105,7 +113,10 @@ export function DataTableToolbar<TData>({
                 }
                 className={filter.className}
                 onChange={(value) => handleFilterChange(filter.id, value)}
-                placeholder={`Filter ${filter.label}...`}
+                placeholder={
+                  filter.placeholder ??
+                  `Filter ${filter.label.toLowerCase()}...`
+                }
                 onSearchChange={(search) => filter.onSearchChange?.(search)}
                 loading={filter.loading}
               />
@@ -133,7 +144,8 @@ export function DataTableToolbar<TData>({
                       ? dayjs(value.from).format("MM/DD/YYYY") +
                         " - " +
                         dayjs(value.to).format("MM/DD/YYYY")
-                      : `Filter ${filter.label}...`}
+                      : (filter.placeholder ??
+                        `Filter ${filter.label.toLowerCase()}...`)}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
